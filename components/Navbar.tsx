@@ -1,0 +1,98 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSession, authClient } from '../lib/auth-client';
+
+const Navbar = () => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Hide Navbar if on a dashboard page
+  if (pathname.startsWith('/dashboard')) {
+    return null;
+  }
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    router.push('/');
+  };
+
+  return (
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-black/90 backdrop-blur-md' : 'bg-transparent'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-20">
+          <Link href="/" className="text-2xl font-bold text-white">FundRise</Link>
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center gap-6">
+            {!session?.user ? (
+              <>
+                <Link href="/campaigns" className="text-gray-300 hover:text-white">Explore Campaigns</Link>
+                <Link href="/login" className="text-gray-300 hover:text-white">Login</Link>
+                <Link href="/register" className="text-gray-300 hover:text-white">Register</Link>
+              </>
+            ) : (
+              <>
+                <Link href="/dashboard" className="text-gray-300 hover:text-white">Dashboard</Link>
+                <span className="text-sm bg-blue-900 text-blue-200 px-3 py-1 rounded-full">{session.user.credits || 0} Credits</span>
+                
+                <div className="relative">
+                  <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2">
+                    <img src={session.user.image || '/avatar-placeholder.jpg'} alt={session.user.name} className="w-8 h-8 rounded-full" />
+                    <span className="text-gray-300">{session.user.name}</span>
+                  </button>
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg py-2">
+                      <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">Profile</Link>
+                      <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-800 text-red-400">Logout</button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+            <a href="#" target="_blank" className="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700">Join as Developer</a>
+          </div>
+          {/* Mobile Menu Button */}
+          <button className="md:hidden text-white" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
+          </button>
+        </div>
+      </div>
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-black/95 p-4 flex flex-col gap-4 text-white">
+          {!session?.user ? (
+            <>
+              <Link href="/campaigns">Explore Campaigns</Link>
+              <Link href="/login">Login</Link>
+              <Link href="/register">Register</Link>
+            </>
+          ) : (
+            <>
+              <Link href="/dashboard">Dashboard</Link>
+              <span className="text-sm">Credits: {session.user.credits || 0}</span>
+              <Link href="/profile">Profile</Link>
+              <button onClick={handleLogout} className="text-left text-red-400">Logout</button>
+            </>
+          )}
+          <a href="#" target="_blank" className="text-blue-400 font-semibold">Join as Developer</a>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;
