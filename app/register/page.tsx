@@ -28,15 +28,17 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    try {
-      await signUp.email({
-        email: formData.email,
-        password: formData.password,
-        name: formData.name,
-        image: formData.profilePictureUrl,
-        role: formData.role
-      });
-      router.push('/dashboard');
+        try {
+          await signUp.email({
+            email: formData.email,
+            password: formData.password,
+            name: formData.name,
+            image: formData.profilePictureUrl,
+            role: formData.role,
+            credits: 0
+          });
+          router.push('/dashboard');
+
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
     } finally {
