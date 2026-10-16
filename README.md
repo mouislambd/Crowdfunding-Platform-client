@@ -4,8 +4,8 @@
 - **Server API URL:** https://crowdfunding-platform-server-wj8g.onrender.com
 
 ## Demo Admin Credentials
-- **Admin Email:** ADMIN_EMAIL_HERE
-- **Admin Password:** ADMIN_PASSWORD_HERE
+- **Admin Email:** admin@gmail.com
+- **Admin Password:** adminadmin
 
 ## Key Features
 1. **Role-Based Access Control:** Distinct roles for Supporters, Builders, and Admins with secure route guards and automatic redirection.
