@@ -53,6 +53,16 @@ const Navbar = () => {
     router.push('/');
   };
 
+  const getDashboardHome = () => {
+    if (!session?.user?.role) return '/dashboard/supporter-home';
+    const role = session.user.role.toLowerCase().trim();
+    if (role === 'admin') return '/dashboard/admin-home';
+    if (role === 'builder') return '/dashboard/builder-home';
+    return '/dashboard/supporter-home';
+  };
+
+  const dashboardHome = getDashboardHome();
+
   return (
     <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-black/90 backdrop-blur-md' : 'bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -68,17 +78,17 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link href="/dashboard" className="text-gray-300 hover:text-white">Dashboard</Link>
+                <Link href={dashboardHome} className="text-gray-300 hover:text-white">Dashboard</Link>
                 <span className="text-sm bg-blue-900 text-blue-200 px-3 py-1 rounded-full">{session.user.credits || 0} Credits</span>
                 
                 <div className="relative" ref={dropdownRef}>
                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2">
-                    <img src={session.user.image || '/avatar-placeholder.jpg'} alt={session.user.name} className="w-8 h-8 rounded-full" />
+                    <img src={session.user.image || '/avatar-placeholder.jpg'} alt={session.user.name} className="w-8 h-8 rounded-full object-cover" />
                     <span className="text-gray-300">{session.user.name}</span>
                   </button>
                   {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg py-2">
-                      <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-800" onClick={() => setIsDropdownOpen(false)}>Dashboard</Link>
+                      <Link href={dashboardHome} className="block px-4 py-2 hover:bg-gray-800" onClick={() => setIsDropdownOpen(false)}>Dashboard</Link>
                       <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800" onClick={() => setIsDropdownOpen(false)}>Profile</Link>
                       <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-800 text-red-400">Logout</button>
                     </div>
@@ -105,7 +115,7 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
+              <Link href={dashboardHome} onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
               <span className="text-sm">Credits: {session.user.credits || 0}</span>
               <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>Profile</Link>
               <button onClick={handleLogout} className="text-left text-red-400">Logout</button>
