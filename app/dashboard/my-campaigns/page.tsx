@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from '../../../lib/auth-client';
+import { useSession } from "@/lib/auth-client";
+import { API_URL } from "@/lib/api";
 import Link from 'next/link';
 import { PlusCircle, Trash2, Edit } from 'lucide-react';
 
@@ -35,7 +36,7 @@ export default function MyCampaignsPage() {
 
   const fetchCampaigns = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/campaigns/builder/my-campaigns', {
+      const response = await fetch(`${API_URL}/api/campaigns/builder/my-campaigns`, {
         credentials: 'include',
       });
       
@@ -62,7 +63,7 @@ export default function MyCampaignsPage() {
   const deleteCampaign = async (id: string) => {
     if (!confirm('Are you sure you want to delete this campaign?')) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/campaigns/${id}`, {
+      const response = await fetch(`${API_URL}/api/campaigns/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -80,7 +81,7 @@ export default function MyCampaignsPage() {
     e.preventDefault();
     if (!editingCampaign) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/campaigns/${editingCampaign.id}`, {
+      const response = await fetch(`${API_URL}/api/campaigns/${editingCampaign.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

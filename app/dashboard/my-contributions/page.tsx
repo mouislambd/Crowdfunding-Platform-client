@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
+import { API_URL } from '@/lib/api';
 
 interface Contribution {
   id: string;
@@ -41,7 +42,7 @@ export default function MyContributionsPage() {
       setError(null);
       try {
         const response = await fetch(
-          `http://localhost:5000/api/contributions/my-contributions?page=${currentPage}&limit=10`,
+          `${API_URL}/api/contributions/my-contributions?page=${currentPage}&limit=10`,
           {
             method: 'GET',
             headers: {

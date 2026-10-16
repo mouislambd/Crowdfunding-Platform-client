@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '../../../lib/auth-client';
+import { API_URL } from "@/lib/api";
 
 const categories = ['Technology', 'Art', 'Community', 'Health', 'Education', 'Environment'];
 
@@ -39,7 +40,7 @@ export default function AddCampaignPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/campaigns', {
+      const response = await fetch(`${API_URL}/api/campaigns`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from '@/lib/auth-client';
+import { API_URL } from '@/lib/api';
 
 interface Payment {
   _id: string;
@@ -30,7 +31,7 @@ export default function PaymentHistoryPage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('http://localhost:5000/api/payments/my-payments', {
+        const response = await fetch(`${API_URL}/api/payments/my-payments`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

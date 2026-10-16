@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useSession } from '../../../lib/auth-client';
+import { useSession } from "@/lib/auth-client";
+import { API_URL } from "@/lib/api";
 import Link from 'next/link';
 
 interface Campaign {
@@ -35,7 +36,7 @@ export default function CampaignDetailsPage() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`http://localhost:5000/api/campaigns/${id}`)
+    fetch(`${API_URL}/api/campaigns/${id}`)
       .then(res => {
         if (res.status === 404) throw new Error('Campaign not found');
         if (!res.ok) throw new Error('Failed to fetch campaign');
@@ -54,7 +55,7 @@ export default function CampaignDetailsPage() {
     setContributionMessage('');
 
     try {
-      const res = await fetch(`http://localhost:5000/api/contributions`, {
+      const res = await fetch(`${API_URL}/api/contributions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

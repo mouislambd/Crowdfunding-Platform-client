@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSession } from '../../../lib/auth-client';
+import { useSession } from "@/lib/auth-client";
+import { API_URL } from "@/lib/api";
 import Link from 'next/link';
 
 interface Contribution {
@@ -24,8 +25,8 @@ export default function SupporterHomePage() {
     const fetchData = async () => {
       try {
         const [myRes, approvedRes] = await Promise.all([
-          fetch('http://localhost:5000/api/contributions/my-contributions', { credentials: 'include' }),
-          fetch('http://localhost:5000/api/contributions/approved', { credentials: 'include' })
+          fetch(`${API_URL}/api/contributions/my-contributions`, { credentials: 'include' }),
+          fetch(`${API_URL}/api/contributions/approved`, { credentials: 'include' })
         ]);
 
         if (!myRes.ok || !approvedRes.ok) throw new Error('Failed to fetch data');

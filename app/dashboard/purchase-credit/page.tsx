@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSession } from '@/lib/auth-client';
+import { API_URL } from '@/lib/api';
 
 const packages = [
   { id: 1, credits: 100, price: 10 },
@@ -22,7 +23,7 @@ export default function PurchaseCreditPage() {
     setSuccess(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/payments', {
+        const response = await fetch(`${API_URL}/api/payments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

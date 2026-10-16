@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
+import { API_URL } from "@/lib/api";
 import { AlertCircle, CheckCircle, XCircle, Eye, Loader2 } from "lucide-react";
 
 interface Campaign {
@@ -32,8 +33,8 @@ export default function BuilderHomePage() {
     setError(null);
     try {
       const [campaignsRes, contributionsRes] = await Promise.all([
-        fetch("http://localhost:5000/api/campaigns/builder/my-campaigns", { credentials: "include" }),
-        fetch("http://localhost:5000/api/contributions/builder/pending", { credentials: "include" }),
+        fetch(`${API_URL}/api/campaigns/builder/my-campaigns`, { credentials: "include" }),
+        fetch(`${API_URL}/api/contributions/builder/pending`, { credentials: "include" }),
       ]);
 
       if (!campaignsRes.ok || !contributionsRes.ok) throw new Error("Failed to fetch data");
@@ -56,7 +57,7 @@ export default function BuilderHomePage() {
 
   const handleAction = async (id: string, action: "approve" | "reject") => {
     try {
-      const res = await fetch(`http://localhost:5000/api/contributions/${action}/${id}`, {
+      const res = await fetch(`${API_URL}/api/contributions/${action}/${id}`, {
         method: "PATCH",
         credentials: "include",
       });

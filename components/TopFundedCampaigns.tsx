@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { API_URL } from "@/lib/api";
 
 interface Campaign {
   _id: string;
@@ -19,7 +20,7 @@ const TopFundedCampaigns = () => {
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/campaigns/top-funded');
+        const response = await fetch(`${API_URL}/api/campaigns/top-funded`);
         if (!response.ok) throw new Error('Failed to fetch campaigns');
         const data = await response.json();
         setCampaigns(data);

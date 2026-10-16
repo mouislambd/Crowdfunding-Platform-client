@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
+import { API_URL } from '@/lib/api';
 
 interface WithdrawalRequest {
   _id: string;
@@ -25,7 +26,7 @@ export default function WithdrawalsPage() {
 
   const fetchRequests = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/withdrawals/my-withdrawals', {
+      const response = await fetch(`${API_URL}/api/withdrawals/my-withdrawals`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -45,7 +46,7 @@ export default function WithdrawalsPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/withdrawals', {
+      const response = await fetch(`${API_URL}/api/withdrawals`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

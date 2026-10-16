@@ -1,5 +1,6 @@
 'use client';
 
+import { API_URL } from '../../lib/api';
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 
@@ -24,7 +25,7 @@ export default function ExploreCampaignsPage() {
   const categories = ['All', 'Technology', 'Art', 'Community', 'Health', 'Education', 'Environment'];
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/campaigns/approved')
+    fetch(`${API_URL}/api/campaigns/approved`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch campaigns');
         return res.json();

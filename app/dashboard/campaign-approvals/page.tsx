@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from '../../../lib/auth-client';
+import { useSession } from "@/lib/auth-client";
+import { API_URL } from "@/lib/api";
 import { Check, X } from 'lucide-react';
 
 interface PendingCampaign {
@@ -31,7 +32,7 @@ export default function AdminCampaignApprovalsPage() {
 
   const fetchPendingCampaigns = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/campaigns/admin/pending', {
+      const response = await fetch(`${API_URL}/api/campaigns/admin/pending`, {
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch pending campaigns');
@@ -46,7 +47,7 @@ export default function AdminCampaignApprovalsPage() {
 
   const handleAction = async (id: string, action: 'approve' | 'reject') => {
     try {
-      const response = await fetch(`http://localhost:5000/api/campaigns/admin/${action}/${id}`, {
+      const response = await fetch(`${API_URL}/api/campaigns/admin/${action}/${id}`, {
         method: 'PATCH',
         credentials: 'include',
       });
