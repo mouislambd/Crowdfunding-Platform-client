@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { API_URL } from '@/lib/api';
 
@@ -12,7 +13,17 @@ const packages = [
 ];
 
 export default function PurchaseCreditPage() {
-  const { data: session, refetch } = useSession();
+  const { data: session, isPending, refetch } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isPending) {
+      if (!session || (session.user.role || '').toLowerCase() !== 'supporter') {
+        router.push('/dashboard');
+      }
+    }
+  }, [session, isPending, router]);
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<{ credits: number; price: number } | null>(null);
@@ -23,7 +34,7 @@ export default function PurchaseCreditPage() {
     setSuccess(null);
 
     try {
-        const response = await fetch(`${API_URL}/api/payments`, {
+      const response = await fetch(`${API_URL}/api/payments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -36,21 +47,26 @@ export default function PurchaseCreditPage() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Payment error:', response.status, errorText);
-        throw new Error(`Payment failed: ${response.status} ${errorText}`);
+        const errorData = await response.json().catch(() => ({}));
+        const realErrorMessage = errorData.message || errorData.error || `Payment failed with status ${response.status}`;
+        throw new Error(realErrorMessage);
       }
 
       setSuccess(`${selectedPackage.credits} credits added to your account!`);
       setSelectedPackage(null);
-      refetch(); // Update session credits
-    } catch (err) {
+      if (typeof refetch === 'function') {
+        await refetch();
+      }
+      router.refresh();
+    } catch (err: any) {
       console.error('Payment process error:', err);
-      alert(err instanceof Error ? err.message : 'Payment failed. Please try again.');
+      alert(err.message || 'Payment failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (isPending) return <div className="p-8 text-white">Loading...</div>;
 
   return (
     <div className="p-6 text-slate-100 bg-slate-950 min-h-screen">
@@ -68,7 +84,7 @@ export default function PurchaseCreditPage() {
             <p className="text-2xl font-semibold mb-6 text-blue-400">${pkg.price}</p>
             <button
               onClick={() => setSelectedPackage(pkg)}
-              className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded font-semibold"
+              className="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded font-semibold transition-colors"
             >
               Buy Now
             </button>

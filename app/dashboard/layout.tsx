@@ -21,7 +21,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (isPending || !session) return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>;
 
   const role = (session.user.role || 'supporter').toLowerCase().trim();
-  console.log("User role:", role);
 
   const navItems = {
     supporter: [
@@ -33,17 +32,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ],
     builder: [
       { name: 'Home', href: '/dashboard/builder-home', icon: Home },
-      { name: 'Add New Campaign', href: '/dashboard/add-campaign', icon: PlusCircle },
+      { name: 'Add Campaign', href: '/dashboard/add-campaign', icon: PlusCircle },
       { name: 'My Campaigns', href: '/dashboard/my-campaigns', icon: LayoutDashboard },
       { name: 'Withdrawals', href: '/dashboard/withdrawals', icon: DollarSign },
       { name: 'Payment History', href: '/dashboard/payment-history', icon: FileText },
     ],
     admin: [
-      { name: 'Home', href: '/dashboard', icon: Home },
-      { name: 'Manage Users', href: '/dashboard/admin/users', icon: Users },
-      { name: 'Manage Campaigns', href: '/dashboard/campaign-approvals', icon: LayoutDashboard },
-      { name: 'Withdrawal Requests', href: '/dashboard/admin/withdrawals', icon: DollarSign },
-      { name: 'Reports', href: '/dashboard/admin/reports', icon: FileText },
+      { name: 'Home', href: '/dashboard/admin-home', icon: Home },
+      { name: 'Manage Users', href: '/dashboard/manage-users', icon: Users },
+      { name: 'Manage Campaigns', href: '/dashboard/manage-campaigns', icon: LayoutDashboard },
+      { name: 'Withdrawal Requests', href: '/dashboard/withdrawal-requests', icon: DollarSign },
+      { name: 'Reports', href: '/dashboard/reports', icon: FileText },
     ],
   };
 
@@ -62,12 +61,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         <nav className="p-4 space-y-2">
           {currentNav.map((item) => (
-            <Link key={item.name} href={item.href} className="flex items-center gap-3 p-3 rounded hover:bg-gray-800">
+            <Link key={item.name} href={item.href} className="flex items-center gap-3 p-3 rounded hover:bg-gray-800 transition-colors">
               <item.icon size={20} />
               {item.name}
             </Link>
           ))}
-          <Link href="/" className="flex items-center gap-3 p-3 rounded hover:bg-gray-800 text-gray-400 hover:text-white">
+          <Link href="/" className="flex items-center gap-3 p-3 rounded hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
             <ArrowLeft size={20} />
             Back to Website
           </Link>
@@ -82,7 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <NotificationBell />
             <span className="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-sm">{session.user.credits || 0} Credits</span>
             <div className="flex items-center gap-2">
-              <img src={session.user.image || '/avatar-placeholder.jpg'} alt={session.user.name} className="w-8 h-8 rounded-full" />
+              <img src={session.user.image || '/avatar-placeholder.jpg'} alt={session.user.name} className="w-8 h-8 rounded-full object-cover" />
               <div>
                 <p className="text-sm font-semibold">{session.user.name}</p>
                 <p className="text-xs text-gray-400 capitalize">{role}</p>

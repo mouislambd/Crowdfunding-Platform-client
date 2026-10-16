@@ -7,6 +7,7 @@ interface Notification {
   _id: string;
   message: string;
   actionRoute: string;
+  createdAt?: string;
 }
 
 export default function NotificationBell() {
@@ -17,7 +18,14 @@ export default function NotificationBell() {
   useEffect(() => {
     fetch(`${API_URL}/api/notifications`, { credentials: 'include' })
       .then(res => res.json())
-      .then(setNotifications)
+      .then(data => {
+        const list = Array.isArray(data) ? data : data.notifications || [];
+        list.sort((a: Notification, b: Notification) => {
+          if (!a.createdAt || !b.createdAt) return 0;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        setNotifications(list);
+      })
       .catch(console.error);
 
     const handleClickOutside = (event: MouseEvent) => {
@@ -40,12 +48,13 @@ export default function NotificationBell() {
         )}
       </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-50">
+        <div className="absolute right-0 mt-2 w-72 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+          <div className="p-3 border-b border-gray-800 text-xs font-semibold text-gray-400 uppercase">Notifications</div>
           {notifications.length === 0 ? (
             <p className="p-4 text-sm text-gray-400">No new notifications</p>
           ) : (
             notifications.map(n => (
-              <a key={n._id} href={n.actionRoute} className="block p-4 border-b border-gray-800 hover:bg-gray-800 text-sm">
+              <a key={n._id} href={n.actionRoute || '#'} onClick={() => setIsOpen(false)} className="block p-3 border-b border-gray-800 hover:bg-gray-800 text-sm transition-colors">
                 {n.message}
               </a>
             ))
