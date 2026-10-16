@@ -1,26 +1,29 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from '../../lib/auth-client';
 import { Menu, X, Home, Compass, CreditCard, Clock, PlusCircle, LayoutDashboard, DollarSign, Users, FileText, ArrowLeft } from 'lucide-react';
 import NotificationBell from '../../components/NotificationBell';
+import { normalizeRole } from '../../lib/roles';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const redirectedRef = useRef(false);
 
   useEffect(() => {
-    if (!isPending && !session) {
+    if (!isPending && !session && !redirectedRef.current) {
+      redirectedRef.current = true;
       router.push('/login');
     }
   }, [session, isPending, router]);
 
   if (isPending || !session) return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>;
 
-  const role = (session.user.role || 'supporter').toLowerCase().trim();
+  const role = normalizeRole(session.user.role) || 'supporter';
 
   const navItems = {
     supporter: [

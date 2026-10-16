@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { API_URL } from '@/lib/api';
+import { normalizeRole, homePathFor } from '@/lib/roles';
 
 interface Payment {
   _id: string;
@@ -16,57 +17,68 @@ interface Payment {
 
 export default function PaymentHistoryPage() {
   const { data: session, isPending } = useSession();
-  const router = useRouter();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const role = normalizeRole(session?.user?.role);
+  const isAllowed = role === 'supporter' || role === 'builder';
+
   useEffect(() => {
-    if (!isPending) {
-      if (!session) {
-        router.push('/login');
-      } else {
-        const role = (session.user.role || '').toLowerCase();
-        if (role !== 'supporter' && role !== 'builder') {
-          router.push('/dashboard');
+    if (isAllowed) {
+      const fetchPayments = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await fetch(`${API_URL}/api/payments/my-payments`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || 'Failed to fetch payment history');
+          }
+
+          const data = await response.json();
+          setPayments(Array.isArray(data) ? data : data.payments || []);
+        } catch (err: any) {
+          setError(err.message || 'An error occurred');
+        } finally {
+          setLoading(false);
         }
-      }
+      };
+
+      fetchPayments();
     }
-  }, [session, isPending, router]);
+  }, [isAllowed]);
 
-  useEffect(() => {
-    if (isPending || !session) return;
-    const role = (session.user.role || '').toLowerCase();
-    if (role !== 'supporter' && role !== 'builder') return;
+  if (isPending) {
+    return (
+      <div className="p-8 text-white flex items-center gap-3">
+        <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Loading...</span>
+      </div>
+    );
+  }
 
-    const fetchPayments = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`${API_URL}/api/payments/my-payments`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-        });
+  if (!isAllowed) {
+    return (
+      <div className="p-8 text-white">
+        <h1 className="text-2xl font-bold text-red-500 mb-4">Access Denied</h1>
+        <p className="text-gray-400 mb-4">You do not have permission to view payment history.</p>
+        <Link href={homePathFor(session?.user?.role)} className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
+          Go to Dashboard Home
+        </Link>
+      </div>
+    );
+  }
 
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.message || 'Failed to fetch payment history');
-        }
-
-        const data = await response.json();
-        setPayments(Array.isArray(data) ? data : data.payments || []);
-      } catch (err: any) {
-        setError(err.message || 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPayments();
-  }, [session, isPending]);
-
-  if (isPending || loading) {
+  if (loading) {
     return <div className="p-8 text-slate-300">Loading your payment history...</div>;
   }
 

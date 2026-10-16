@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useSession } from '@/lib/auth-client';
 import { API_URL } from '@/lib/api';
+import { normalizeRole, homePathFor } from '@/lib/roles';
 
 interface WithdrawalRequest {
   _id: string;
@@ -16,16 +17,6 @@ interface WithdrawalRequest {
 
 export default function WithdrawalsPage() {
   const { data: session, isPending } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isPending) {
-      if (!session || (session.user.role || '').toLowerCase() !== 'builder') {
-        router.push('/dashboard');
-      }
-    }
-  }, [session, isPending, router]);
-
   const [amount, setAmount] = useState<number>(0);
   const [paymentSystem, setPaymentSystem] = useState<string>('Stripe');
   const [accountNumber, setAccountNumber] = useState<string>('');
@@ -35,6 +26,7 @@ export default function WithdrawalsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const role = normalizeRole(session?.user?.role);
   const credits = summary?.credits ?? session?.user?.credits ?? 0;
   const dollarAmount = (amount / 20).toFixed(2);
 
@@ -61,10 +53,34 @@ export default function WithdrawalsPage() {
   };
 
   useEffect(() => {
-    if (session && (session.user.role || '').toLowerCase() === 'builder') {
+    if (role === 'builder') {
       fetchSummaryAndRequests();
     }
-  }, [session]);
+  }, [role]);
+
+  if (isPending) {
+    return (
+      <div className="p-8 text-white flex items-center gap-3">
+        <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Loading...</span>
+      </div>
+    );
+  }
+
+  if (role !== 'builder') {
+    return (
+      <div className="p-8 text-white">
+        <h1 className="text-2xl font-bold text-red-500 mb-4">Access Denied</h1>
+        <p className="text-gray-400 mb-4">Only builders can access this page.</p>
+        <Link href={homePathFor(session?.user?.role)} className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
+          Go to Dashboard Home
+        </Link>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +111,7 @@ export default function WithdrawalsPage() {
     }
   };
 
-  if (isPending || loading) return <div className="p-8 text-white">Loading withdrawals...</div>;
+  if (loading) return <div className="p-8 text-white">Loading withdrawals...</div>;
   if (error) return <div className="p-8 text-red-500">{error}</div>;
 
   const availableCredits = summary?.credits ?? 0;
