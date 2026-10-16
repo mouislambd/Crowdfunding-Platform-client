@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from '../../lib/auth-client';
-import { Menu, X, Home, Compass, CreditCard, Clock, PlusCircle, LayoutDashboard, DollarSign, Users, FileText } from 'lucide-react';
+import { Menu, X, Home, Compass, CreditCard, Clock, PlusCircle, LayoutDashboard, DollarSign, Users, FileText, ArrowLeft } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
@@ -56,7 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 w-64 bg-gray-900 z-30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform border-r border-gray-800`}>
         <div className="p-6 flex justify-between items-center">
-          <Link href="/" className="text-xl font-bold">FundRise</Link>
+          <Link href="/" className="text-xl font-bold cursor-pointer hover:text-gray-300 transition-colors">FundRise</Link>
           <button className="md:hidden" onClick={() => setIsSidebarOpen(false)}><X /></button>
         </div>
         <nav className="p-4 space-y-2">
@@ -66,6 +66,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {item.name}
             </Link>
           ))}
+          <Link href="/" className="flex items-center gap-3 p-3 rounded hover:bg-gray-800 text-gray-400 hover:text-white">
+            <ArrowLeft size={20} />
+            Back to Website
+          </Link>
         </nav>
       </aside>
 
