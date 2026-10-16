@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from '../../lib/auth-client';
 import { Menu, X, Home, Compass, CreditCard, Clock, PlusCircle, LayoutDashboard, DollarSign, Users, FileText, ArrowLeft } from 'lucide-react';
+import NotificationBell from '../../components/NotificationBell';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
@@ -31,7 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       { name: 'Payment History', href: '/dashboard/payment-history', icon: FileText },
     ],
     builder: [
-      { name: 'Home', href: '/dashboard/creator-home', icon: Home },
+      { name: 'Home', href: '/dashboard/builder-home', icon: Home },
       { name: 'Add New Campaign', href: '/dashboard/add-campaign', icon: PlusCircle },
       { name: 'My Campaigns', href: '/dashboard/my-campaigns', icon: LayoutDashboard },
       { name: 'Withdrawals', href: '/dashboard/withdrawals', icon: DollarSign },
@@ -78,6 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="bg-gray-900 p-4 border-b border-gray-800 flex justify-between items-center">
           <button className="md:hidden" onClick={() => setIsSidebarOpen(true)}><Menu /></button>
           <div className="flex items-center gap-4 ml-auto">
+            <NotificationBell />
             <span className="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-sm">{session.user.credits || 0} Credits</span>
             <div className="flex items-center gap-2">
               <img src={session.user.image || '/avatar-placeholder.jpg'} alt={session.user.name} className="w-8 h-8 rounded-full" />

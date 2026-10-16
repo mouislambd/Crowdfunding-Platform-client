@@ -19,10 +19,25 @@ export default function WithdrawalsPage() {
   const [paymentSystem, setPaymentSystem] = useState<string>('Stripe');
   const [accountNumber, setAccountNumber] = useState<string>('');
   const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
+  const [summary, setSummary] = useState<{ credits: number, dollar_equivalent: number } | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const credits = session?.user.credits || 0;
+  const credits = summary?.credits || session?.user.credits || 0;
   const dollarAmount = (amount / 20).toFixed(2);
+
+  const fetchSummary = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/withdrawals/summary`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSummary(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch summary', err);
+    }
+  };
 
   const fetchRequests = async () => {
     try {
@@ -39,7 +54,10 @@ export default function WithdrawalsPage() {
   };
 
   useEffect(() => {
-    if (session) fetchRequests();
+    if (session) {
+        fetchSummary();
+        fetchRequests();
+    }
   }, [session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,7 +89,7 @@ export default function WithdrawalsPage() {
       <h1 className="text-2xl font-bold mb-6">Withdrawals</h1>
       <div className="mb-8 bg-slate-900 p-6 rounded-lg border border-slate-800">
         <p className="mb-2">Available Credits: {credits}</p>
-        <p className="mb-6">Equivalent Dollar Amount: ${ (credits / 20).toFixed(2) }</p>
+        <p className="mb-6">Equivalent Dollar Amount: ${ (summary?.dollar_equivalent || (credits / 20)).toFixed(2) }</p>
         
         {credits < 200 ? (
           <p className="text-red-400">Minimum 200 credits required to withdraw.</p>

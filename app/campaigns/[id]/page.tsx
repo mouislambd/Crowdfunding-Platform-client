@@ -33,6 +33,9 @@ export default function CampaignDetailsPage() {
   const [contributionAmount, setContributionAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [contributionMessage, setContributionMessage] = useState('');
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -79,6 +82,26 @@ export default function CampaignDetailsPage() {
     }
   };
 
+  const handleReport = async () => {
+    setReporting(true);
+    try {
+        const res = await fetch(`${API_URL}/api/reports`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ campaign_id: id, reason: reportReason }),
+            credentials: 'include'
+        });
+        if (!res.ok) throw new Error('Failed to report campaign');
+        alert('Campaign reported.');
+        setReportModalOpen(false);
+        setReportReason('');
+    } catch (err: any) {
+        alert(err.message);
+    } finally {
+        setReporting(false);
+    }
+  };
+
   if (loading) return <div className="pt-24 p-8 text-center text-white">Loading campaign...</div>;
   if (error) return <div className="pt-24 p-8 text-center text-red-500">{error}</div>;
   if (!campaign) return null;
@@ -95,6 +118,7 @@ export default function CampaignDetailsPage() {
       />
       <h1 className="text-4xl font-bold mb-2">{campaign.campaign_title}</h1>
       <p className="text-gray-400 mb-4">by {campaign.creator_name} | {campaign.category}</p>
+      <button onClick={() => setReportModalOpen(true)} className="text-red-500 hover:text-red-400 underline text-sm mb-4">Report this campaign</button>
 
       {/* Progress & Info */}
       <div className="bg-gray-900 p-6 rounded-lg mb-8 border border-gray-800">
@@ -161,3 +185,4 @@ export default function CampaignDetailsPage() {
     </div>
   );
 }
+// End of file

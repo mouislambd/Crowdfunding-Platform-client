@@ -31,7 +31,8 @@ export default function PaymentHistoryPage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_URL}/api/payments/my-payments`, {
+        const role = (session.user.role || 'supporter').toLowerCase();
+        const response = await fetch(`${API_URL}/api/payments/${role}/my-payments`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
