@@ -86,7 +86,7 @@ const Navbar = () => {
                 </div>
               </>
             )}
-            <a href="#" target="_blank" className="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700">Join as Developer</a>
+            <a href="https://github.com/mouislambd/Crowdfunding-Platform-client" target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700">Join as Developer</a>
           </div>
           {/* Mobile Menu Button */}
           <button className="md:hidden text-white" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -111,7 +111,7 @@ const Navbar = () => {
               <button onClick={handleLogout} className="text-left text-red-400">Logout</button>
             </>
           )}
-          <a href="#" target="_blank" className="text-blue-400 font-semibold" onClick={() => setIsMobileMenuOpen(false)}>Join as Developer</a>
+          <a href="https://github.com/mouislambd/Crowdfunding-Platform-client" target="_blank" rel="noopener noreferrer" className="text-blue-400 font-semibold" onClick={() => setIsMobileMenuOpen(false)}>Join as Developer</a>
         </div>
       )}
     </nav>

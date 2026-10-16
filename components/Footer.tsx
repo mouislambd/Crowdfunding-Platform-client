@@ -1,6 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
 
+// TODO: Replace social links (#) with actual URLs later:
+// - LinkedIn: #
+// - Facebook: #
+// - GitHub: #
+// - Twitter: #
+
 const SocialIcon = ({ name }: { name: string }) => (
   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
     <text x="50%" y="50%" fontSize="8" textAnchor="middle" dominantBaseline="middle">{name[0]}</text>
@@ -18,10 +24,10 @@ const Footer = () => {
           </div>
           
           <div className="flex gap-6">
-            <a href="#" target="_blank" className="text-gray-400 hover:text-white" title="LinkedIn"><SocialIcon name="L" /></a>
-            <a href="#" target="_blank" className="text-gray-400 hover:text-white" title="Facebook"><SocialIcon name="F" /></a>
-            <a href="#" target="_blank" className="text-gray-400 hover:text-white" title="GitHub"><SocialIcon name="G" /></a>
-            <a href="#" target="_blank" className="text-gray-400 hover:text-white" title="Twitter"><SocialIcon name="T" /></a>
+            <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white" title="LinkedIn"><SocialIcon name="L" /></a>
+            <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white" title="Facebook"><SocialIcon name="F" /></a>
+            <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white" title="GitHub"><SocialIcon name="G" /></a>
+            <a href="#" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white" title="Twitter"><SocialIcon name="T" /></a>
           </div>
         </div>
         

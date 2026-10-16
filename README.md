@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FundRise - Crowdfunding Platform
 
-## Getting Started
+- **Live Client URL:** https://crowdfunding-platform-client-flame.vercel.app
+- **Server API URL:** https://crowdfunding-platform-server-wj8g.onrender.com
 
-First, run the development server:
+## Demo Admin Credentials
+- **Admin Email:** ADMIN_EMAIL_HERE
+- **Admin Password:** ADMIN_PASSWORD_HERE
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Key Features
+1. **Role-Based Access Control:** Distinct roles for Supporters, Builders, and Admins with secure route guards and automatic redirection.
+2. **Credit System:** Supporters can purchase credit packages and use credits to support campaigns.
+3. **Campaign Creation & Management:** Builders can create, edit, and delete campaigns with image uploads.
+4. **imgBB Image Hosting:** Seamless image uploading for user profile pictures and campaign banners via imgBB API with preview and error handling.
+5. **Contributions Workflow:** Supporters contribute to campaigns; builders review pending contributions (Approve/Reject) with modal details.
+6. **Withdrawal Requests:** Builders can request withdrawals when meeting minimum credit thresholds, with automatic credit-to-dollar conversion (20 credits = $1).
+7. **Admin Dashboard & Management:** Admins can view platform stats, manage users (change roles and remove users), review and manage all campaigns, approve withdrawal requests, and handle reports.
+8. **Campaign Reporting & Suspension:** Supporters can report campaigns; admins can review reports, suspend campaigns, or delete them.
+9. **Real-time Notifications:** Dashboard top bar notification bell with count badge and floating popup list sorted by newest first.
+10. **Responsive Design:** Fully responsive dark-themed UI featuring scrollable data tables (`overflow-x-auto`) across all screens.
+11. **Payment & Transaction History:** Comprehensive transaction logs for both supporters and builders.
+12. **Interactive Navbar & Sidebar:** Dynamic navigation with session persistence, dropdown menus, and sidebar links.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
+- **Frontend:** Next.js (App Router), React, TypeScript, Tailwind CSS, Lucide React
+- **Authentication:** Better Auth client integration
+- **Image Hosting:** imgBB API
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Running Locally
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Clone the repository and navigate to the client folder:
+   ```bash
+   cd client
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env.local` file with the following environment variables (without values):
+   ```env
+   NEXT_PUBLIC_API_URL=
+   NEXT_PUBLIC_IMGBB_KEY=
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
