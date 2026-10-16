@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, authClient } from '../lib/auth-client';
@@ -12,14 +12,35 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    setIsDropdownOpen(false);
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   // Hide Navbar if on a dashboard page
   if (pathname.startsWith('/dashboard')) {
@@ -28,6 +49,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     await authClient.signOut();
+    setIsDropdownOpen(false);
     router.push('/');
   };
 
@@ -49,14 +71,15 @@ const Navbar = () => {
                 <Link href="/dashboard" className="text-gray-300 hover:text-white">Dashboard</Link>
                 <span className="text-sm bg-blue-900 text-blue-200 px-3 py-1 rounded-full">{session.user.credits || 0} Credits</span>
                 
-                <div className="relative">
+                <div className="relative" ref={dropdownRef}>
                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2">
                     <img src={session.user.image || '/avatar-placeholder.jpg'} alt={session.user.name} className="w-8 h-8 rounded-full" />
                     <span className="text-gray-300">{session.user.name}</span>
                   </button>
                   {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg py-2">
-                      <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800">Profile</Link>
+                      <Link href="/dashboard" className="block px-4 py-2 hover:bg-gray-800" onClick={() => setIsDropdownOpen(false)}>Dashboard</Link>
+                      <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800" onClick={() => setIsDropdownOpen(false)}>Profile</Link>
                       <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-800 text-red-400">Logout</button>
                     </div>
                   )}
@@ -76,19 +99,19 @@ const Navbar = () => {
         <div className="md:hidden bg-black/95 p-4 flex flex-col gap-4 text-white">
           {!session?.user ? (
             <>
-              <Link href="/campaigns">Explore Campaigns</Link>
-              <Link href="/login">Login</Link>
-              <Link href="/register">Register</Link>
+              <Link href="/campaigns" onClick={() => setIsMobileMenuOpen(false)}>Explore Campaigns</Link>
+              <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
+              <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>Register</Link>
             </>
           ) : (
             <>
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
               <span className="text-sm">Credits: {session.user.credits || 0}</span>
-              <Link href="/profile">Profile</Link>
+              <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>Profile</Link>
               <button onClick={handleLogout} className="text-left text-red-400">Logout</button>
             </>
           )}
-          <a href="#" target="_blank" className="text-blue-400 font-semibold">Join as Developer</a>
+          <a href="#" target="_blank" className="text-blue-400 font-semibold" onClick={() => setIsMobileMenuOpen(false)}>Join as Developer</a>
         </div>
       )}
     </nav>
