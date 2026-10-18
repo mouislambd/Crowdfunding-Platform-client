@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signIn } from '../../lib/auth-client';
+import { authClient, signIn } from '../../lib/auth-client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,11 +17,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signIn.email({
+      await authClient.signIn.email({
         email: formData.email,
         password: formData.password,
+        callbackURL: `${window.location.origin}/dashboard`,
       });
-      router.push('/dashboard');
+      router.push(`${window.location.origin}/dashboard`);
     } catch (err: any) {
       setError(err.message || 'Login failed.');
     } finally {
@@ -31,8 +32,11 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signIn.social({
-        provider: 'google',
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: `${window.location.origin}/dashboard`,
+        newUserCallbackURL: `${window.location.origin}/dashboard`,
+        errorCallbackURL: `${window.location.origin}/login`,
       });
     } catch (err: any) {
       setError(err.message || 'Google sign-in failed.');

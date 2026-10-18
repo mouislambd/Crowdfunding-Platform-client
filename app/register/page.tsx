@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signUp } from '../../lib/auth-client';
+import { authClient, signUp } from '../../lib/auth-client';
 import { uploadImage } from '../../lib/uploadImage';
 
 export default function RegisterPage() {
@@ -52,15 +52,16 @@ export default function RegisterPage() {
         }
       }
 
-      await signUp.email({
+      await authClient.signUp.email({
         email: formData.email,
         password: formData.password,
         name: formData.name,
         image: imageUrl,
         role: formData.role,
-        credits: 0
+        credits: 0,
+        callbackURL: `${window.location.origin}/dashboard`,
       });
-      router.push('/dashboard');
+      router.push(`${window.location.origin}/dashboard`);
 
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
