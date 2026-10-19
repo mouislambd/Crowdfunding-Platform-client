@@ -7,6 +7,7 @@ import { useSession } from '../../lib/auth-client';
 import { Menu, X, Home, Compass, CreditCard, Clock, PlusCircle, LayoutDashboard, DollarSign, Users, FileText, ArrowLeft } from 'lucide-react';
 import NotificationBell from '../../components/NotificationBell';
 import { normalizeRole } from '../../lib/roles';
+import Logo from '../../components/Logo';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
@@ -59,7 +60,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 w-64 bg-gray-900 z-30 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform border-r border-gray-800`}>
         <div className="p-6 flex justify-between items-center">
-          <Link href="/" className="text-xl font-bold cursor-pointer hover:text-gray-300 transition-colors">FundRise</Link>
+          <Link href="/">
+            <Logo size="sm" />
+          </Link>
           <button className="md:hidden" onClick={() => setIsSidebarOpen(false)}><X /></button>
         </div>
         <nav className="p-4 space-y-2">

@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Logo from './Logo';
 
 // TODO: Replace social links (#) with actual URLs later:
 // - LinkedIn: #
@@ -19,7 +20,9 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col items-center md:items-start gap-2">
-            <Link href="/" className="text-2xl font-bold">FundRise</Link>
+            <Link href="/">
+              <Logo size="md" />
+            </Link>
             <p className="text-gray-400 text-sm">Empowering dreams, funding the future.</p>
           </div>
           

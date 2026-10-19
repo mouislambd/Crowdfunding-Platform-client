@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, authClient } from '../lib/auth-client';
+import Logo from './Logo';
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -67,7 +68,9 @@ const Navbar = () => {
     <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-black/90 backdrop-blur-md' : 'bg-transparent'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <Link href="/" className="text-2xl font-bold text-white">FundRise</Link>
+          <Link href="/">
+            <Logo size="md" />
+          </Link>
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-6">
             {!session?.user ? (
