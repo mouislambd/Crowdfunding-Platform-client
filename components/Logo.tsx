@@ -7,9 +7,9 @@ interface LogoProps {
 
 export const Logo: React.FC<LogoProps> = ({ className = '', size = 'md' }) => {
   const iconSizes = {
-    sm: 'w-7 h-7',
-    md: 'w-9 h-9',
-    lg: 'w-11 h-11',
+    sm: 'w-8 h-8',
+    md: 'w-10 h-10',
+    lg: 'w-12 h-12',
   };
 
   const textSizes = {
@@ -19,29 +19,40 @@ export const Logo: React.FC<LogoProps> = ({ className = '', size = 'md' }) => {
   };
 
   return (
-    <div className={`flex items-center gap-3 group cursor-pointer ${className}`}>
-      {/* Icon */}
-      <div className={`relative flex items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-500 shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform duration-300 ${iconSizes[size]}`}>
+    <div className={`flex items-center gap-3.5 group cursor-pointer select-none ${className}`}>
+      {/* Ultra-Modern Glowing Glassmorphism Icon */}
+      <div className={`relative flex items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600/30 via-indigo-600/30 to-emerald-500/30 border border-blue-400/40 backdrop-blur-xl shadow-xl shadow-blue-900/40 group-hover:border-cyan-400/70 group-hover:shadow-cyan-500/30 transition-all duration-500 ${iconSizes[size]}`}>
+        {/* Glow effect background */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500 to-emerald-400 opacity-20 blur-sm group-hover:opacity-40 transition-opacity" />
+        
+        {/* Futuristic SVG Growth / Rising Spark Icon */}
         <svg
-          className="w-5 h-5 text-white drop-shadow"
+          className="relative w-5 h-5 text-cyan-300 drop-name group-hover:scale-110 transition-transform duration-300"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.5"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           viewBox="0 0 24 24"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-          />
+          <path d="M3 17l6-6 4 4 8-8" />
+          <path d="M14 7h7v7" />
         </svg>
-        <div className="absolute inset-0 rounded-xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      {/* Text */}
-      <span className={`font-extrabold tracking-tight text-white ${textSizes[size]}`}>
-        Fund<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Rise</span>
-      </span>
+      {/* Sleek Typography */}
+      <div className="flex flex-col">
+        <div className={`font-black tracking-tight text-white flex items-center gap-0.5 ${textSizes[size]}`}>
+          <span>Fund</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400">
+            Rise
+          </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
+        </div>
+        <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold -mt-1 hidden sm:block">
+          Crowdfund Platform
+        </span>
+      </div>
     </div>
   );
 };
