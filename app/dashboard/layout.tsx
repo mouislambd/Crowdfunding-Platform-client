@@ -85,7 +85,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <button className="md:hidden" onClick={() => setIsSidebarOpen(true)}><Menu /></button>
           <div className="flex items-center gap-4 ml-auto">
             <NotificationBell />
-            <span className="bg-blue-900 text-blue-200 px-3 py-1 rounded-full text-sm">{session.user.credits || 0} Credits</span>
+            <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-sm font-semibold shadow-lg shadow-emerald-950/50">
+              <span className="text-emerald-400 font-bold">$</span>
+              <span>{(((session.user.credits || 0) / 20)).toFixed(2)} USD</span>
+              <span className="text-xs text-gray-400 font-normal hidden sm:inline">({session.user.credits || 0} Cr)</span>
+            </div>
             <div className="flex items-center gap-2">
               <img src={session.user.image || '/avatar-placeholder.jpg'} alt={session.user.name} className="w-8 h-8 rounded-full object-cover" />
               <div>

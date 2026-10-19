@@ -82,7 +82,11 @@ const Navbar = () => {
             ) : (
               <>
                 <Link href={dashboardHome} className="text-gray-300 hover:text-white">Dashboard</Link>
-                <span className="text-sm bg-blue-900 text-blue-200 px-3 py-1 rounded-full">{session.user.credits || 0} Credits</span>
+                <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-sm font-semibold shadow-lg shadow-emerald-950/50">
+                  <span className="text-emerald-400 font-bold">$</span>
+                  <span>{(((session.user.credits || 0) / 20)).toFixed(2)} USD</span>
+                  <span className="text-xs text-gray-400 font-normal hidden sm:inline">({session.user.credits || 0} Cr)</span>
+                </div>
                 
                 <div className="relative" ref={dropdownRef}>
                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2">
@@ -119,7 +123,10 @@ const Navbar = () => {
           ) : (
             <>
               <Link href={dashboardHome} onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
-              <span className="text-sm">Credits: {session.user.credits || 0}</span>
+              <div className="flex items-center gap-2 text-emerald-300 text-sm font-semibold">
+                <span>Balance: ${(((session.user.credits || 0) / 20)).toFixed(2)} USD</span>
+                <span className="text-xs text-gray-400">({session.user.credits || 0} Cr)</span>
+              </div>
               <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>Profile</Link>
               <button onClick={handleLogout} className="text-left text-red-400">Logout</button>
             </>
