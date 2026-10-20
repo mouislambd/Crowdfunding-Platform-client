@@ -29,7 +29,8 @@ interface Contribution {
 export default function BuilderHomePage() {
   const { data: session, isPending } = useSession();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [campaignsError, setCampaignsError] = useState<string | null>(null);
+  const [contributionsError, setContributionsError] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [selectedContribution, setSelectedContribution] = useState<Contribution | null>(null);
@@ -38,25 +39,66 @@ export default function BuilderHomePage() {
 
   useEffect(() => {
     if (role === 'builder') {
-      const fetchData = async () => {
+      let isMounted = true;
+      setLoading(true);
+
+      const fetchStats = async () => {
         try {
-          setLoading(true);
-          const [campaignsRes, contributionsRes] = await Promise.all([
-            fetch(`${API_URL}/api/campaigns/builder/my-campaigns`, { credentials: 'include' }),
-            fetch(`${API_URL}/api/contributions/creator/pending`, { credentials: 'include' })
-          ]);
-          if (!campaignsRes.ok || !contributionsRes.ok) throw new Error('Failed to fetch data');
-          const campData = await campaignsRes.json();
-          const contribData = await contributionsRes.json();
-          setCampaigns(Array.isArray(campData) ? campData : campData.campaigns || []);
-          setContributions(Array.isArray(contribData) ? contribData : contribData.contributions || []);
+          const res = await fetch(`${API_URL}/api/campaigns/builder/my-campaigns`, { credentials: 'include' });
+          if (!res.ok) {
+            const text = await res.text();
+            console.error(res.status, text);
+            if (isMounted) {
+              setCampaignsError(`Could not load stats (${res.status})`);
+            }
+          } else {
+            const data = await res.json();
+            if (isMounted) {
+              setCampaigns(Array.isArray(data) ? data : data.campaigns || []);
+              setCampaignsError(null);
+            }
+          }
         } catch (err) {
-          setError('Failed to load dashboard data');
-        } finally {
-          setLoading(false);
+          console.error(err);
+          if (isMounted) {
+            setCampaignsError('Could not load stats');
+          }
         }
       };
-      fetchData();
+
+      const fetchContributions = async () => {
+        try {
+          const res = await fetch(`${API_URL}/api/contributions/creator/pending`, { credentials: 'include' });
+          if (!res.ok) {
+            const text = await res.text();
+            console.error(res.status, text);
+            if (isMounted) {
+              setContributionsError(`Could not load pending contributions (${res.status})`);
+            }
+          } else {
+            const data = await res.json();
+            if (isMounted) {
+              setContributions(Array.isArray(data) ? data : data.contributions || []);
+              setContributionsError(null);
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          if (isMounted) {
+            setContributionsError('Could not load pending contributions');
+          }
+        }
+      };
+
+      Promise.allSettled([fetchStats(), fetchContributions()]).then(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+      return () => {
+        isMounted = false;
+      };
     }
   }, [role]);
 
@@ -96,7 +138,6 @@ export default function BuilderHomePage() {
   };
 
   if (loading) return <div className="p-8 text-white">Loading...</div>;
-  if (error) return <div className="p-8 text-red-500">{error}</div>;
 
   const totalCampaigns = campaigns.length;
   const activeCampaigns = campaigns.filter(c => c.deadline && new Date(c.deadline) > new Date()).length;
@@ -107,25 +148,33 @@ export default function BuilderHomePage() {
       <h1 className="text-3xl font-bold mb-6">Builder Dashboard</h1>
       
       {/* Stat cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-          <p className="text-gray-400">Total Campaigns</p>
-          <p className="text-3xl font-bold">{totalCampaigns}</p>
+      {campaignsError ? (
+        <div className="bg-gray-900 p-6 rounded-lg border border-gray-800 mb-8 text-red-500">
+          {campaignsError}
         </div>
-        <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-          <p className="text-gray-400">Active Campaigns (Future Deadline)</p>
-          <p className="text-3xl font-bold text-blue-400">{activeCampaigns}</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <p className="text-gray-400">Total Campaigns</p>
+            <p className="text-3xl font-bold">{totalCampaigns}</p>
+          </div>
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <p className="text-gray-400">Active Campaigns (Future Deadline)</p>
+            <p className="text-3xl font-bold text-blue-400">{activeCampaigns}</p>
+          </div>
+          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+            <p className="text-gray-400">Total Amount Raised</p>
+            <p className="text-3xl font-bold text-green-400">${totalAmountRaised.toLocaleString()}</p>
+          </div>
         </div>
-        <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-          <p className="text-gray-400">Total Amount Raised</p>
-          <p className="text-3xl font-bold text-green-400">${totalAmountRaised.toLocaleString()}</p>
-        </div>
-      </div>
+      )}
 
       <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
         <h2 className="text-xl font-bold mb-4">Contributions To Review</h2>
-        {contributions.length === 0 ? (
-          <p className="text-gray-400">No pending contributions to review.</p>
+        {contributionsError ? (
+          <div className="text-red-500">{contributionsError}</div>
+        ) : contributions.length === 0 ? (
+          <p className="text-gray-400">No contributions to review right now.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
