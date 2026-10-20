@@ -54,7 +54,7 @@ const TopFundedCampaigns = () => {
   );
 
   return (
-    <section className="py-20 md:py-24 bg-gray-950">
+    <section className="py-20 md:py-24 bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <Reveal>
           <h2 className="text-3xl font-bold text-white mb-2">Top Funded Campaigns</h2>
@@ -64,7 +64,7 @@ const TopFundedCampaigns = () => {
           {campaigns.slice(0, 6).map((campaign, idx) => (
             <Reveal key={campaign._id} delay={idx * 0.1}>
               <motion.div whileHover={{ scale: 1.02, y: -4 }} transition={{ duration: 0.3 }} className="h-full">
-                <Link href={`/campaigns/${campaign._id}`} className="group block h-full bg-gray-900/80 backdrop-blur-md rounded-2xl overflow-hidden border border-white/10 shadow-xl shadow-black/40 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300">
+                <Link href={`/campaigns/${campaign._id}`} className="group block h-full bg-slate-900/80 backdrop-blur-md rounded-2xl overflow-hidden border border-white/10 shadow-xl shadow-black/40 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300">
                   <div className="relative overflow-hidden">
                     <img 
                       src={campaign.campaign_image_url || '/placeholder-campaign.jpg'} 

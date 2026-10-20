@@ -16,7 +16,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="relative h-screen w-full overflow-hidden">
+    <section className="relative h-screen w-full overflow-hidden bg-slate-950">
       {/* Background Video */}
       <video
         ref={videoRef}
@@ -30,8 +30,9 @@ const Hero = () => {
         Your browser does not support the video tag.
       </video>
 
-      {/* Dark Gradient Overlay */}
-      <div className="absolute inset-0 bg-black/60 bg-gradient-to-b from-black/40 via-black/60 to-black/90" />
+      {/* Light Overlay & Bottom Gradient */}
+      <div className="absolute inset-0 bg-black/15" />
+      <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-slate-950 to-transparent" />
 
       {/* Hero Content */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center text-white">
@@ -39,7 +40,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl"
+          className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl drop-shadow-lg"
         >
           Empower Dreams, Fund the Future.
         </motion.h1>
@@ -47,7 +48,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
-          className="mb-8 max-w-2xl text-lg sm:text-xl md:text-2xl text-gray-200"
+          className="mb-8 max-w-2xl text-lg sm:text-xl md:text-2xl text-gray-200 drop-shadow-md"
         >
           Join a community dedicated to bringing innovative ideas and building projects to life.
         </motion.p>
@@ -55,7 +56,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
-          className="flex flex-col gap-4 sm:flex-row"
+          className="flex flex-col gap-4 sm:flex-row drop-shadow-md"
         >
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
             <Link href="/campaigns" className="inline-block rounded-2xl bg-blue-600 px-8 py-3 text-lg font-semibold text-white transition-all shadow-lg shadow-blue-600/30 hover:bg-blue-500 hover:shadow-blue-500/50">

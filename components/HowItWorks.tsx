@@ -29,7 +29,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="py-20 bg-gray-950">
+    <section className="py-20 bg-slate-950">
       <div className="max-w-7xl mx-auto px-4 md:px-8 text-center">
         <Reveal>
           <h2 className="text-3xl font-bold text-white mb-2">How It Works</h2>
@@ -39,8 +39,8 @@ const HowItWorks = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
           {steps.map((step, index) => (
             <Reveal key={index} delay={index * 0.15}>
-              <div className="flex flex-col items-center relative h-full bg-gray-900/50 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl">
-                <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-white/10 bg-gray-900 mb-6 group">
+              <div className="flex flex-col items-center relative h-full bg-slate-900/50 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl">
+                <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-white/10 bg-slate-900 mb-6 group">
                   <video
                     src={step.video}
                     autoPlay

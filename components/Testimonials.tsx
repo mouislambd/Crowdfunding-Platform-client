@@ -52,7 +52,7 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section className="py-20 bg-gray-900 text-white">
+    <section className="py-20 bg-slate-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Reveal>
           <h2 className="text-3xl font-bold text-center mb-2">What Our Community Says</h2>
@@ -74,7 +74,7 @@ const Testimonials = () => {
           >
             {testimonials.map((t, index) => (
               <SwiperSlide key={index} className="h-auto">
-                <div className="bg-gray-950/80 backdrop-blur-md p-8 rounded-2xl h-full flex flex-col items-center text-center border border-white/10 shadow-xl">
+                <div className="bg-slate-950/80 backdrop-blur-md p-8 rounded-2xl h-full flex flex-col items-center text-center border border-white/10 shadow-xl">
                   <img src={t.avatar} alt={t.name} className="w-20 h-20 rounded-full mb-6 border-2 border-blue-500 object-cover shadow-lg shadow-blue-500/20" />
                   <p className="text-gray-300 italic mb-6">"{t.quote}"</p>
                   <h4 className="font-semibold text-white mt-auto">{t.name}</h4>

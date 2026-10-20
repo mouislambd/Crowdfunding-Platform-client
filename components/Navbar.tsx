@@ -20,7 +20,7 @@ const Navbar = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    const handleScroll = () => setIsScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -69,33 +69,33 @@ const Navbar = () => {
   const dashboardHome = getDashboardHome();
 
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b ${isScrolled ? 'bg-black/80 backdrop-blur-md border-white/10 shadow-lg shadow-black/50' : 'bg-black/40 backdrop-blur-md border-white/10'}`}>
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-black/20 backdrop-blur-sm border-b border-white/10 shadow-md' : 'bg-transparent backdrop-blur-none border-none shadow-none'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <Link href="/">
+          <Link href="/" className="drop-shadow-md">
             <Logo size="md" />
           </Link>
           {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-6 drop-shadow-md">
             {!session?.user ? (
               <>
-                <Link href="/campaigns" className="text-gray-300 hover:text-white transition-colors">Explore Campaigns</Link>
-                <Link href="/login" className="text-gray-300 hover:text-white transition-colors">Login</Link>
-                <Link href="/register" className="text-gray-300 hover:text-white transition-colors">Register</Link>
+                <Link href="/campaigns" className="text-gray-200 hover:text-white transition-colors">Explore Campaigns</Link>
+                <Link href="/login" className="text-gray-200 hover:text-white transition-colors">Login</Link>
+                <Link href="/register" className="text-gray-200 hover:text-white transition-colors">Register</Link>
               </>
             ) : (
               <>
-                <Link href={dashboardHome} className="text-gray-300 hover:text-white transition-colors">Dashboard</Link>
+                <Link href={dashboardHome} className="text-gray-200 hover:text-white transition-colors">Dashboard</Link>
                 <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-sm font-semibold shadow-lg shadow-emerald-950/50">
                   <span className="text-emerald-400 font-bold">$</span>
                   <span>{(((session.user.credits || 0) / 20)).toFixed(2)} USD</span>
-                  <span className="text-xs text-gray-400 font-normal hidden sm:inline">({session.user.credits || 0} Cr)</span>
+                  <span className="text-xs text-gray-300 font-normal hidden sm:inline">({session.user.credits || 0} Cr)</span>
                 </div>
                 
                 <div className="relative" ref={dropdownRef}>
                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 group">
-                    <img src={session.user.image || '/avatar-placeholder.jpg'} alt={session.user.name} className="w-8 h-8 rounded-full object-cover border border-white/20 group-hover:border-blue-500 transition-colors" />
-                    <span className="text-gray-300 group-hover:text-white transition-colors">{session.user.name}</span>
+                    <img src={session.user.image || '/avatar-placeholder.jpg'} alt={session.user.name} className="w-8 h-8 rounded-full object-cover border border-white/20 group-hover:border-blue-500 transition-colors shadow-md" />
+                    <span className="text-gray-200 group-hover:text-white transition-colors">{session.user.name}</span>
                   </button>
                   <AnimatePresence>
                     {isDropdownOpen && (
@@ -106,8 +106,8 @@ const Navbar = () => {
                         transition={{ duration: 0.2 }}
                         className="absolute right-0 mt-2 w-48 bg-gray-900 border border-white/10 rounded-2xl py-2 shadow-2xl backdrop-blur-md"
                       >
-                        <Link href={dashboardHome} className="block px-4 py-2 hover:bg-gray-800 transition-colors" onClick={() => setIsDropdownOpen(false)}>Dashboard</Link>
-                        <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800 transition-colors" onClick={() => setIsDropdownOpen(false)}>Profile</Link>
+                        <Link href={dashboardHome} className="block px-4 py-2 hover:bg-gray-800 transition-colors text-white" onClick={() => setIsDropdownOpen(false)}>Dashboard</Link>
+                        <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800 transition-colors text-white" onClick={() => setIsDropdownOpen(false)}>Profile</Link>
                         <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-800 transition-colors text-red-400">Logout</button>
                       </motion.div>
                     )}
@@ -118,7 +118,7 @@ const Navbar = () => {
             <DeveloperButton />
           </div>
           {/* Mobile Menu Button */}
-          <button className="md:hidden text-white p-2 rounded-xl bg-white/5 border border-white/10" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <button className="md:hidden text-white p-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 drop-shadow-md" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
           </button>
         </div>

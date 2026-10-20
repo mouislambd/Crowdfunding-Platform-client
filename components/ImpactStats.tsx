@@ -40,7 +40,7 @@ const Counter = ({ value, prefix = '', suffix = '' }: { value: number; prefix?: 
 
 const ImpactStats = () => {
   return (
-    <section className="relative py-24 overflow-hidden">
+    <section className="relative py-24 overflow-hidden bg-slate-900">
       <video
         src="/mou.mp4"
         autoPlay
@@ -49,7 +49,7 @@ const ImpactStats = () => {
         playsInline
         className="absolute inset-0 w-full h-full object-cover"
       />
-      <div className="absolute inset-0 bg-black/75 bg-gradient-to-r from-black/80 via-black/70 to-black/80" />
+      <div className="absolute inset-0 bg-slate-950/75 bg-gradient-to-r from-slate-950/80 via-slate-900/70 to-slate-950/80" />
       
       <div className="relative max-w-7xl mx-auto px-4 md:px-8 text-center">
         <Reveal>
@@ -58,7 +58,7 @@ const ImpactStats = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {stats.map((stat, index) => (
             <Reveal key={index} delay={index * 0.1}>
-              <div className="flex flex-col items-center bg-gray-900/40 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-xl">
+              <div className="flex flex-col items-center bg-slate-900/50 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-xl">
                 <Counter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                 <p className="text-gray-300 mt-2 text-lg">{stat.label}</p>
               </div>
