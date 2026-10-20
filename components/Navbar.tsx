@@ -8,6 +8,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession, authClient } from '../lib/auth-client';
 import Logo from './Logo';
+import DeveloperButton from './DeveloperButton';
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -114,7 +115,7 @@ const Navbar = () => {
                 </div>
               </>
             )}
-            <a href="https://github.com/mouislambd/Crowdfunding-Platform-client" target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-white px-5 py-2.5 rounded-2xl font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-all">Join as Developer</a>
+            <DeveloperButton />
           </div>
           {/* Mobile Menu Button */}
           <button className="md:hidden text-white p-2 rounded-xl bg-white/5 border border-white/10" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -149,7 +150,7 @@ const Navbar = () => {
                 <button onClick={handleLogout} className="text-left py-2 text-red-400 hover:text-red-300 transition-colors">Logout</button>
               </>
             )}
-            <a href="https://github.com/mouislambd/Crowdfunding-Platform-client" target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-center text-white py-3 rounded-2xl font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-all" onClick={() => setIsMobileMenuOpen(false)}>Join as Developer</a>
+            <DeveloperButton fullWidth={true} />
           </motion.div>
         )}
       </AnimatePresence>
