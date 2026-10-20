@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { authClient, signIn } from '../../lib/auth-client';
 
 export default function LoginPage() {
@@ -45,35 +46,57 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full bg-gray-900 p-8 rounded-xl shadow-lg border border-gray-800">
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">Login</h2>
+      <motion.div 
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-md w-full bg-gray-900/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/10"
+      >
+        <h2 className="text-3xl font-bold text-white mb-6 text-center tracking-tight">Login</h2>
         
-        {error && <div className="bg-red-900/50 text-red-200 p-3 rounded mb-4 text-sm">{error}</div>}
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-red-950/80 border border-red-500/40 text-red-200 p-4 rounded-2xl mb-6 text-sm flex items-center gap-2 shadow-lg"
+            >
+              <span>{error}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <form onSubmit={handleEmailSignIn} className="space-y-4">
+        <form onSubmit={handleEmailSignIn} className="space-y-5">
           <div>
-            <label className="block text-gray-400 text-sm mb-1">Email</label>
-            <input type="email" required className="w-full bg-gray-950 text-white rounded p-3 border border-gray-700" onChange={e => setFormData({...formData, email: e.target.value})} />
+            <label className="block text-gray-400 text-sm mb-2 font-medium">Email</label>
+            <input type="email" required className="w-full bg-gray-950 text-white rounded-2xl p-3.5 border border-white/10 focus:ring-2 focus:ring-blue-500/50 focus:outline-none transition-all" onChange={e => setFormData({...formData, email: e.target.value})} />
           </div>
           <div>
-            <label className="block text-gray-400 text-sm mb-1">Password</label>
-            <input type="password" required className="w-full bg-gray-950 text-white rounded p-3 border border-gray-700" onChange={e => setFormData({...formData, password: e.target.value})} />
+            <label className="block text-gray-400 text-sm mb-2 font-medium">Password</label>
+            <input type="password" required className="w-full bg-gray-950 text-white rounded-2xl p-3.5 border border-white/10 focus:ring-2 focus:ring-blue-500/50 focus:outline-none transition-all" onChange={e => setFormData({...formData, password: e.target.value})} />
           </div>
-          <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700 disabled:bg-blue-800">
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} type="submit" disabled={loading} className="w-full bg-blue-600 text-white p-3.5 rounded-2xl font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-500 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+            {loading && (
+              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            )}
             {loading ? 'Logging in...' : 'Login'}
-          </button>
+          </motion.button>
         </form>
 
-        <div className="my-6 text-center text-gray-500">OR</div>
+        <div className="my-6 text-center text-gray-500 text-sm uppercase tracking-wider font-semibold">OR</div>
         
-        <button onClick={handleGoogleSignIn} className="w-full bg-white text-gray-900 p-3 rounded font-semibold hover:bg-gray-200">
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={handleGoogleSignIn} className="w-full bg-white text-gray-900 p-3.5 rounded-2xl font-semibold shadow-xl hover:bg-gray-100 transition-all flex items-center justify-center gap-3">
           Continue with Google
-        </button>
+        </motion.button>
         
         <p className="text-center text-gray-400 mt-6 text-sm">
-          Don't have an account? <Link href="/register" className="text-blue-400 hover:text-white">Register</Link>
+          Don't have an account? <Link href="/register" className="text-blue-400 hover:text-white font-medium transition-colors">Register</Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

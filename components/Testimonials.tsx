@@ -1,8 +1,11 @@
 'use client';
 
+'use client';
+
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
+import Reveal from './Reveal';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -51,32 +54,36 @@ const Testimonials = () => {
   return (
     <section className="py-20 bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-center mb-2">What Our Community Says</h2>
-        <p className="text-gray-400 text-center mb-10">Hear from our amazing creators and supporters.</p>
+        <Reveal>
+          <h2 className="text-3xl font-bold text-center mb-2">What Our Community Says</h2>
+          <p className="text-gray-400 text-center mb-10">Hear from our amazing creators and supporters.</p>
+        </Reveal>
         
-        <Swiper
-          modules={[Autoplay, Pagination]}
-          spaceBetween={30}
-          slidesPerView={1}
-          autoplay={{ delay: 4000, disableOnInteraction: false }}
-          pagination={{ clickable: true }}
-          breakpoints={{
-            640: { slidesPerView: 2 },
-            1024: { slidesPerView: 3 },
-          }}
-          className="pb-12"
-        >
-          {testimonials.map((t, index) => (
-            <SwiperSlide key={index}>
-              <div className="bg-gray-950 p-8 rounded-xl h-full flex flex-col items-center text-center">
-                <img src={t.avatar} alt={t.name} className="w-20 h-20 rounded-full mb-6 border-2 border-blue-600" />
-                <p className="text-gray-300 italic mb-6">"{t.quote}"</p>
-                <h4 className="font-semibold text-white">{t.name}</h4>
-                <p className="text-blue-400 text-sm">{t.role}</p>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+        <Reveal delay={0.2}>
+          <Swiper
+            modules={[Autoplay, Pagination]}
+            spaceBetween={30}
+            slidesPerView={1}
+            autoplay={{ delay: 4000, disableOnInteraction: false }}
+            pagination={{ clickable: true }}
+            breakpoints={{
+              640: { slidesPerView: 2 },
+              1024: { slidesPerView: 3 },
+            }}
+            className="pb-12"
+          >
+            {testimonials.map((t, index) => (
+              <SwiperSlide key={index} className="h-auto">
+                <div className="bg-gray-950/80 backdrop-blur-md p-8 rounded-2xl h-full flex flex-col items-center text-center border border-white/10 shadow-xl">
+                  <img src={t.avatar} alt={t.name} className="w-20 h-20 rounded-full mb-6 border-2 border-blue-500 object-cover shadow-lg shadow-blue-500/20" />
+                  <p className="text-gray-300 italic mb-6">"{t.quote}"</p>
+                  <h4 className="font-semibold text-white mt-auto">{t.name}</h4>
+                  <p className="text-blue-400 text-sm">{t.role}</p>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </Reveal>
       </div>
     </section>
   );

@@ -1,6 +1,10 @@
 'use client';
 
+'use client';
+
 import React, { useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -27,24 +31,43 @@ const Hero = () => {
       </video>
 
       {/* Dark Gradient Overlay */}
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-black/60 bg-gradient-to-b from-black/40 via-black/60 to-black/90" />
 
       {/* Hero Content */}
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center text-white animate-in fade-in duration-1000">
-        <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center text-white">
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl"
+        >
           Empower Dreams, Fund the Future.
-        </h1>
-        <p className="mb-8 max-w-2xl text-lg sm:text-xl md:text-2xl text-gray-200">
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
+          className="mb-8 max-w-2xl text-lg sm:text-xl md:text-2xl text-gray-200"
+        >
           Join a community dedicated to bringing innovative ideas and building projects to life.
-        </p>
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <button className="rounded-lg bg-blue-600 px-8 py-3 text-lg font-semibold text-white transition hover:bg-blue-700">
-            Explore Campaigns
-          </button>
-          <button className="rounded-lg bg-white px-8 py-3 text-lg font-semibold text-blue-600 transition hover:bg-gray-100">
-            Start a Campaign
-          </button>
-        </div>
+        </motion.p>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
+          className="flex flex-col gap-4 sm:flex-row"
+        >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+            <Link href="/campaigns" className="inline-block rounded-2xl bg-blue-600 px-8 py-3 text-lg font-semibold text-white transition-all shadow-lg shadow-blue-600/30 hover:bg-blue-500 hover:shadow-blue-500/50">
+              Explore Campaigns
+            </Link>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+            <Link href="/dashboard/add-campaign" className="inline-block rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 px-8 py-3 text-lg font-semibold text-white transition-all hover:bg-white/20">
+              Start a Campaign
+            </Link>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

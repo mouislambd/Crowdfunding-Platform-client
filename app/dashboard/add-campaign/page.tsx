@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from '../../../lib/auth-client';
 import { API_URL } from "@/lib/api";
 import { uploadImage } from '@/lib/uploadImage';
@@ -47,7 +48,7 @@ export default function AddCampaignPage() {
       <div className="p-8 text-white">
         <h1 className="text-2xl font-bold text-red-500 mb-4">Access Denied</h1>
         <p className="text-gray-400 mb-4">Only builders can add campaigns.</p>
-        <Link href={homePathFor(session?.user?.role)} className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
+        <Link href={homePathFor(session?.user?.role)} className="bg-blue-600 px-4 py-2 rounded-2xl hover:bg-blue-500 transition-colors">
           Go to Dashboard Home
         </Link>
       </div>
@@ -113,56 +114,74 @@ export default function AddCampaignPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-gray-900 p-8 rounded-xl border border-gray-800 text-white">
-      <h1 className="text-2xl font-bold mb-6">Add New Campaign</h1>
-      {message && <div className={`p-4 rounded mb-6 ${message.type === 'success' ? 'bg-green-900/50 text-green-200' : 'bg-red-900/50 text-red-200'}`}>{message.text}</div>}
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="max-w-2xl mx-auto bg-gray-900/90 backdrop-blur-xl p-8 rounded-3xl border border-white/10 text-white shadow-2xl"
+    >
+      <h1 className="text-2xl font-bold mb-6 tracking-tight">Add New Campaign</h1>
+      
+      <AnimatePresence>
+        {message && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className={`p-4 rounded-2xl mb-6 shadow-lg ${message.type === 'success' ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-200' : 'bg-red-950/80 border border-red-500/40 text-red-200'}`}
+          >
+            {message.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-gray-400 text-sm mb-1">Campaign Title</label>
-          <input type="text" required className="w-full bg-gray-950 text-white rounded p-3 border border-gray-700" onChange={e => setFormData({...formData, campaign_title: e.target.value})} />
+          <label className="block text-gray-400 text-sm mb-2 font-medium">Campaign Title</label>
+          <input type="text" required className="w-full bg-gray-950 text-white rounded-2xl p-3.5 border border-white/10 focus:ring-2 focus:ring-blue-500/50 focus:outline-none transition-all" onChange={e => setFormData({...formData, campaign_title: e.target.value})} />
         </div>
         <div>
-          <label className="block text-gray-400 text-sm mb-1">Story</label>
-          <textarea required className="w-full bg-gray-950 text-white rounded p-3 border border-gray-700 h-32" onChange={e => setFormData({...formData, campaign_story: e.target.value})} />
+          <label className="block text-gray-400 text-sm mb-2 font-medium">Story</label>
+          <textarea required className="w-full bg-gray-950 text-white rounded-2xl p-3.5 border border-white/10 focus:ring-2 focus:ring-blue-500/50 focus:outline-none transition-all h-32" onChange={e => setFormData({...formData, campaign_story: e.target.value})} />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-gray-400 text-sm mb-1">Category</label>
-            <select className="w-full bg-gray-950 text-white rounded p-3 border border-gray-700" onChange={e => setFormData({...formData, category: e.target.value})}>
+            <label className="block text-gray-400 text-sm mb-2 font-medium">Category</label>
+            <select className="w-full bg-gray-950 text-white rounded-2xl p-3.5 border border-white/10 focus:ring-2 focus:ring-blue-500/50 focus:outline-none transition-all" onChange={e => setFormData({...formData, category: e.target.value})}>
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-gray-400 text-sm mb-1">Deadline</label>
-            <input type="date" required className="w-full bg-gray-950 text-white rounded p-3 border border-gray-700" onChange={e => setFormData({...formData, deadline: e.target.value})} />
+            <label className="block text-gray-400 text-sm mb-2 font-medium">Deadline</label>
+            <input type="date" required className="w-full bg-gray-950 text-white rounded-2xl p-3.5 border border-white/10 focus:ring-2 focus:ring-blue-500/50 focus:outline-none transition-all" onChange={e => setFormData({...formData, deadline: e.target.value})} />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-gray-400 text-sm mb-1">Funding Goal</label>
-            <input type="number" required min="1" className="w-full bg-gray-950 text-white rounded p-3 border border-gray-700" onChange={e => setFormData({...formData, funding_goal: e.target.value})} />
+            <label className="block text-gray-400 text-sm mb-2 font-medium">Funding Goal</label>
+            <input type="number" required min="1" className="w-full bg-gray-950 text-white rounded-2xl p-3.5 border border-white/10 focus:ring-2 focus:ring-blue-500/50 focus:outline-none transition-all" onChange={e => setFormData({...formData, funding_goal: e.target.value})} />
           </div>
           <div>
-            <label className="block text-gray-400 text-sm mb-1">Min. Contribution</label>
-            <input type="number" required min="1" className="w-full bg-gray-950 text-white rounded p-3 border border-gray-700" onChange={e => setFormData({...formData, minimum_contribution: e.target.value})} />
+            <label className="block text-gray-400 text-sm mb-2 font-medium">Min. Contribution</label>
+            <input type="number" required min="1" className="w-full bg-gray-950 text-white rounded-2xl p-3.5 border border-white/10 focus:ring-2 focus:ring-blue-500/50 focus:outline-none transition-all" onChange={e => setFormData({...formData, minimum_contribution: e.target.value})} />
           </div>
         </div>
         <div>
-          <label className="block text-gray-400 text-sm mb-1">Reward Info</label>
-          <textarea required className="w-full bg-gray-950 text-white rounded p-3 border border-gray-700 h-24" onChange={e => setFormData({...formData, reward_info: e.target.value})} />
+          <label className="block text-gray-400 text-sm mb-2 font-medium">Reward Info</label>
+          <textarea required className="w-full bg-gray-950 text-white rounded-2xl p-3.5 border border-white/10 focus:ring-2 focus:ring-blue-500/50 focus:outline-none transition-all h-24" onChange={e => setFormData({...formData, reward_info: e.target.value})} />
         </div>
         <div>
-          <label className="block text-gray-400 text-sm mb-1">Campaign Image</label>
-          <input type="file" accept="image/*" required className="w-full bg-gray-950 text-white rounded p-2 border border-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700" onChange={handleFileChange} />
+          <label className="block text-gray-400 text-sm mb-2 font-medium">Campaign Image</label>
+          <input type="file" accept="image/*" required className="w-full bg-gray-950 text-white rounded-2xl p-2.5 border border-white/10 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 transition-all cursor-pointer" onChange={handleFileChange} />
           {imagePreview && (
             <div className="mt-3 flex items-center gap-3">
-              <img src={imagePreview} alt="Campaign Preview" className="w-24 h-16 rounded object-cover border border-gray-700" />
+              <img src={imagePreview} alt="Campaign Preview" className="w-24 h-16 rounded-xl object-cover border border-white/20 shadow-md" />
               <span className="text-xs text-gray-400">Selected campaign image preview</span>
             </div>
           )}
           {uploadingImage && <p className="text-xs text-blue-400 mt-1">Uploading image...</p>}
         </div>
-        <button type="submit" disabled={loading || uploadingImage} className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700 disabled:bg-blue-800 flex items-center justify-center gap-2">
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} type="submit" disabled={loading || uploadingImage} className="w-full bg-blue-600 text-white p-3.5 rounded-2xl font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-500 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
           {(loading || uploadingImage) && (
             <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -170,8 +189,8 @@ export default function AddCampaignPage() {
             </svg>
           )}
           {uploadingImage ? 'Uploading Image...' : loading ? 'Submitting...' : 'Submit Campaign'}
-        </button>
+        </motion.button>
       </form>
-    </div>
+    </motion.div>
   );
 }
