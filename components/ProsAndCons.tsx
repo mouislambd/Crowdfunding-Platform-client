@@ -34,9 +34,6 @@ export default function ProsAndCons() {
           <div className="lg:col-span-7 space-y-8">
             {/* Pros */}
             <div>
-              <h3 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
-                <span>✓</span> Advantages (Pros)
-              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {pros.map((item, idx) => (
                   <Reveal key={item.title} delay={idx * 0.05}>
@@ -53,9 +50,6 @@ export default function ProsAndCons() {
 
             {/* Cons */}
             <div>
-              <h3 className="text-xl font-bold text-amber-400 mb-4 flex items-center gap-2">
-                <span>ℹ</span> Considerations (Trade-offs)
-              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {cons.map((item, idx) => (
                   <Reveal key={item.title} delay={idx * 0.05}>
