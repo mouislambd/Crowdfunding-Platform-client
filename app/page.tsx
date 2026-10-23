@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic';
 import Hero from '../components/Hero';
-import LiveActivityTicker from '../components/LiveActivityTicker';
 import TopFundedCampaigns from '../components/TopFundedCampaigns';
 import ScrollProgress from '../components/ScrollProgress';
 
@@ -89,7 +88,6 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
       <ScrollProgress />
       <Hero />
-      <LiveActivityTicker />
       <TopFundedCampaigns />
       <ExploreByCategory />
       <HowItWorks />
