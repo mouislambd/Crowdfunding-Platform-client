@@ -63,7 +63,7 @@ const Hero = () => {
           className="flex flex-col gap-4 sm:flex-row drop-shadow-md"
         >
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-            <Link href="/campaigns" className="inline-block rounded-2xl bg-blue-600 px-8 py-3 text-lg font-semibold text-white transition-all shadow-lg shadow-blue-600/30 hover:bg-blue-500 hover:shadow-blue-500/50">
+            <Link href="/campaigns" className="inline-block rounded-2xl bg-indigo-600/80 backdrop-blur-md border border-white/10 px-8 py-3 text-lg font-semibold text-white transition-all shadow-lg hover:bg-indigo-600">
               Explore Campaigns
             </Link>
           </motion.div>
