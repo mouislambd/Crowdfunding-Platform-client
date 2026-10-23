@@ -67,9 +67,9 @@ const FAQ = dynamic(() => import('../components/FAQ'), {
   loading: () => skeleton('FAQ'),
 });
 
-const MeetDeveloper = dynamic(() => import('../components/MeetDeveloper'), {
+const ProsAndCons = dynamic(() => import('../components/ProsAndCons'), {
   ssr: false,
-  loading: () => skeleton('Meet Developer'),
+  loading: () => skeleton('Pros & Cons'),
 });
 
 const Newsletter = dynamic(() => import('../components/Newsletter'), {
@@ -100,7 +100,7 @@ export default function Home() {
       <Testimonials />
       <PaymentMethods />
       <FAQ />
-      <MeetDeveloper />
+      <ProsAndCons />
       <Newsletter />
       <CallToAction />
     </main>
