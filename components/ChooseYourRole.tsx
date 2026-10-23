@@ -139,7 +139,7 @@ export default function ChooseYourRole() {
             <div className="text-center">
               <motion.div whileHover={shouldReduceMotion ? {} : { scale: 1.05 }} whileTap={{ scale: 0.97 }} className="inline-block">
                 <Link
-                  href="/register"
+                  href={`/register?role=${role}`}
                   className="inline-block px-10 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all"
                 >
                   {current.buttonText}
