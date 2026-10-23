@@ -44,8 +44,11 @@ export default function ChooseYourRole() {
   const current = rolesData[role];
 
   return (
-    <section className="py-20 bg-slate-900 text-white overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
+    <section className="py-20 bg-slate-900 text-white overflow-hidden relative">
+      {/* Glassmorphic Ambient Glow Orbs */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
         <Reveal>
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Choose Your Role</h2>
@@ -53,12 +56,12 @@ export default function ChooseYourRole() {
           </div>
         </Reveal>
 
-        {/* Segmented Control */}
+        {/* Glass Segmented Control */}
         <div className="flex justify-center mb-16">
           <div
             role="tablist"
             aria-label="Role Selection"
-            className="relative flex bg-slate-950 p-1.5 rounded-full border border-white/10 shadow-xl"
+            className="relative flex bg-slate-950/60 backdrop-blur-xl p-1.5 rounded-full border border-white/10 shadow-2xl"
           >
             {(['supporter', 'builder'] as const).map(r => {
               const isActive = role === r;
@@ -101,7 +104,7 @@ export default function ChooseYourRole() {
                 {current.steps.map((step, idx) => (
                   <div
                     key={idx}
-                    className="bg-slate-950/70 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl relative group hover:border-blue-500/30 transition-all"
+                    className="bg-slate-950/40 backdrop-blur-2xl p-6 rounded-2xl border border-white/10 shadow-2xl relative group hover:border-blue-500/40 hover:bg-slate-900/60 transition-all duration-300"
                   >
                     <div className="text-3xl font-black text-blue-500/30 mb-4 group-hover:text-blue-500/60 transition-colors">
                       {step.number}
@@ -120,7 +123,7 @@ export default function ChooseYourRole() {
                 {current.benefits.map((benefit, idx) => (
                   <div
                     key={idx}
-                    className="bg-gradient-to-b from-slate-950/80 to-slate-900/50 p-8 rounded-2xl border border-white/10 shadow-xl"
+                    className="bg-slate-950/40 backdrop-blur-2xl p-8 rounded-2xl border border-white/10 shadow-2xl hover:border-blue-500/40 hover:bg-slate-900/60 transition-all duration-300"
                   >
                     <div className="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold mb-4">
                       ✓
