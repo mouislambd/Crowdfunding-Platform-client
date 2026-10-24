@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession } from "@/lib/auth-client";
 import { API_URL } from "@/lib/api";
 import Link from 'next/link';
+import { voiceBus } from '@/components/voiceBus';
 
 interface Campaign {
   _id: string;
@@ -119,6 +120,29 @@ export default function CampaignDetailsPage() {
       <h1 className="text-4xl font-bold mb-2">{campaign.campaign_title}</h1>
       <p className="text-gray-400 mb-4">by {campaign.creator_name} | {campaign.category}</p>
       <button onClick={() => setReportModalOpen(true)} className="text-red-500 hover:text-red-400 underline text-sm mb-4">Report this campaign</button>
+
+      {/* Ask AI about this campaign chips */}
+      <div className="bg-slate-900/80 backdrop-blur-xl p-4 rounded-2xl border border-white/10 mb-8 shadow-xl">
+        <p className="text-xs font-semibold text-blue-400 mb-2.5 flex items-center gap-1.5">
+          <span>✨</span> Ask AI about this campaign:
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {[
+            'How much is still needed?',
+            'What do I get?',
+            'When does it end?',
+            'Is it close to its goal?',
+          ].map((q, idx) => (
+            <button
+              key={idx}
+              onClick={() => voiceBus.ask(`${q} for campaign ${campaign.campaign_title}`)}
+              className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-xs text-gray-200 hover:text-white border border-white/10 transition-colors"
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Progress & Info */}
       <div className="bg-gray-900 p-6 rounded-lg mb-8 border border-gray-800">

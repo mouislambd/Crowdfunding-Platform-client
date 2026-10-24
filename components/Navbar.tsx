@@ -69,7 +69,7 @@ const Navbar = () => {
   const dashboardHome = getDashboardHome();
 
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-black/20 backdrop-blur-sm border-b border-white/10 shadow-md' : 'bg-transparent backdrop-blur-none border-none shadow-none'}`}>
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-slate-950/85 backdrop-blur-2xl border-b border-white/10 shadow-2xl shadow-black/40' : 'bg-transparent backdrop-blur-none border-none shadow-none'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="drop-shadow-md">
@@ -104,11 +104,11 @@ const Navbar = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 8 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-48 bg-gray-900 border border-white/10 rounded-2xl py-2 shadow-2xl backdrop-blur-md"
+                        className="absolute right-0 mt-2 w-48 bg-slate-900/90 border border-white/10 rounded-2xl py-2 shadow-2xl backdrop-blur-2xl"
                       >
-                        <Link href={dashboardHome} className="block px-4 py-2 hover:bg-gray-800 transition-colors text-white" onClick={() => setIsDropdownOpen(false)}>Dashboard</Link>
-                        <Link href="/profile" className="block px-4 py-2 hover:bg-gray-800 transition-colors text-white" onClick={() => setIsDropdownOpen(false)}>Profile</Link>
-                        <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-800 transition-colors text-red-400">Logout</button>
+                        <Link href={dashboardHome} className="block px-4 py-2 hover:bg-slate-800 transition-colors text-white" onClick={() => setIsDropdownOpen(false)}>Dashboard</Link>
+                        <Link href="/profile" className="block px-4 py-2 hover:bg-slate-800 transition-colors text-white" onClick={() => setIsDropdownOpen(false)}>Profile</Link>
+                        <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-slate-800 transition-colors text-red-400">Logout</button>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -131,7 +131,7 @@ const Navbar = () => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-black/95 backdrop-blur-xl border-b border-white/10 p-6 flex flex-col gap-4 text-white"
+            className="md:hidden bg-slate-950/95 backdrop-blur-2xl border-b border-white/10 p-6 flex flex-col gap-4 text-white shadow-2xl"
           >
             {!session?.user ? (
               <>

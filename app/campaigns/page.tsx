@@ -1,8 +1,9 @@
 'use client';
 
 import { API_URL } from '../../lib/api';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 interface Campaign {
   _id: string;
@@ -15,14 +16,23 @@ interface Campaign {
   category: string;
 }
 
-export default function ExploreCampaignsPage() {
+function CampaignsContent() {
+  const searchParams = useSearchParams();
+  const searchParam = searchParams.get('search') || '';
+  const categoryParam = searchParams.get('category') || 'All';
+
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [searchTerm, setSearchTerm] = useState(searchParam);
+  const [categoryFilter, setCategoryFilter] = useState(categoryParam);
 
   const categories = ['All', 'Technology', 'Art', 'Community', 'Health', 'Education', 'Environment'];
+
+  useEffect(() => {
+    if (searchParam) setSearchTerm(searchParam);
+    if (categoryParam) setCategoryFilter(categoryParam);
+  }, [searchParam, categoryParam]);
 
   useEffect(() => {
     fetch(`${API_URL}/api/campaigns/approved`)
@@ -47,10 +57,7 @@ export default function ExploreCampaignsPage() {
   if (error) return <div className="p-12 text-center text-red-500">{error}</div>;
 
   return (
-    <div className="pt-24 pb-12 px-8 max-w-7xl mx-auto">
-      <h1 className="text-4xl font-bold text-white mb-2">Explore Campaigns</h1>
-      <p className="text-gray-400 mb-8">Discover projects that matter.</p>
-
+    <>
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <input
           type="text"
@@ -100,6 +107,18 @@ export default function ExploreCampaignsPage() {
           })}
         </div>
       )}
+    </>
+  );
+}
+
+export default function ExploreCampaignsPage() {
+  return (
+    <div className="pt-24 pb-12 px-8 max-w-7xl mx-auto">
+      <h1 className="text-4xl font-bold text-white mb-2">Explore Campaigns</h1>
+      <p className="text-gray-400 mb-8">Discover projects that matter.</p>
+      <Suspense fallback={<div className="p-12 text-center text-white">Loading filters...</div>}>
+        <CampaignsContent />
+      </Suspense>
     </div>
   );
 }

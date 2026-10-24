@@ -79,7 +79,7 @@ function RegisterForm() {
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5 }}
-      className="max-w-md w-full bg-gray-900/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/10"
+      className="max-w-md w-full bg-slate-900/80 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl border border-white/10 relative z-10"
     >
       <h2 className="text-3xl font-bold text-white mb-6 text-center tracking-tight">Create Account</h2>
       
@@ -147,7 +147,8 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center py-12 px-4 relative overflow-hidden">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
       <Suspense fallback={<div className="text-white text-center">Loading registration...</div>}>
         <RegisterForm />
       </Suspense>
