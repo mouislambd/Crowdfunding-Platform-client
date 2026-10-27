@@ -89,7 +89,7 @@ export default function VoiceAssistant() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transcript: textToSend,
-          lang: lang === 'bn' ? 'bn-BD' : 'en-US',
+          lang: lang === 'bn' ? 'bn' : 'en',
           campaignId,
           page: pathname,
         }),
