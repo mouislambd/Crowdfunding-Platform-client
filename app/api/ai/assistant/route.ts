@@ -1,68 +1,51 @@
 import { NextResponse } from 'next/server';
-
-function isValidInternalUrl(url: string): boolean {
-  if (!url || typeof url !== 'string') return false;
-  if (!url.startsWith('/') || url.startsWith('//') || url.includes('://') || url.includes('javascript:')) {
-    return false;
-  }
-  if (url === '/' || url === '/campaigns' || url === '/dashboard') {
-    return true;
-  }
-  if (/^\/campaigns\/[^/]+$/.test(url)) {
-    return true;
-  }
-  if (/^\/dashboard(\/.*)?$/.test(url)) {
-    return true;
-  }
-  return false;
-}
+import { ROUTES } from '@/lib/voiceRoutes';
 
 export async function POST(request: Request) {
   try {
-    const { transcript, lang, page } = await request.json();
+    const { transcript, lang, campaignId, page } = await request.json();
     const text = (transcript || '').toLowerCase().trim();
     const language = lang === 'bn' ? 'bn' : 'en';
 
-    let matchedUrl: string | null = null;
-    let replyText = language === 'bn' ? 'আমি আপনার অনুরোধ প্রক্রিয়া করেছি।' : 'I have processed your request.';
+    let matchedTarget: string | null = null;
+    let matchedQuery: Record<string, string> | undefined = undefined;
+    let replyText = language === 'bn' ? 'আপনি কোন পেজে যেতে চান? অনুগ্রহ করে স্পষ্ট করে বলুন।' : 'Which page would you like to open? Please specify.';
 
-    // Intent mapping for en + bn navigation phrases
-    if (
-      text.includes('dashboard') ||
-      text.includes('ড্যাশবোর্ড') ||
-      text.includes('take me to my dashboard') ||
-      text.includes('ড্যাশবোর্ডে যাও') ||
-      text.includes('my dashboard')
-    ) {
-      matchedUrl = '/dashboard';
-      replyText = language === 'bn' ? 'আপনাকে ড্যাশবোর্ডে নিয়ে যাচ্ছি।' : 'Taking you to your dashboard.';
-    } else if (
-      text.includes('home') ||
-      text.includes('হোম') ||
-      text.includes('homepage') ||
-      text.includes('মূল পাতা')
-    ) {
-      matchedUrl = '/';
-      replyText = language === 'bn' ? 'আপনাকে হোম পেজে নিয়ে যাচ্ছি।' : 'Taking you to the home page.';
-    } else if (
-      text.includes('campaign') ||
-      text.includes('campaigns') ||
-      text.includes('ক্যাম্পেইন') ||
-      text.includes('show campaigns')
-    ) {
-      if (text.includes('tech') || text.includes('technology') || text.includes('টেক')) {
-        matchedUrl = '/campaigns?category=Technology';
-        replyText = language === 'bn' ? 'টেকনোলজি ক্যাম্পেইনগুলো দেখাচ্ছি।' : 'Showing technology campaigns.';
+    // Check intent matching against ROUTES (English and Bengali keywords)
+    for (const [key, route] of Object.entries(ROUTES)) {
+      const allKeywords = [...route.en, ...route.bn];
+      for (const kw of allKeywords) {
+        if (text.includes(kw.toLowerCase())) {
+          matchedTarget = key;
+          break;
+        }
+      }
+      if (matchedTarget) break;
+    }
+
+    // Special category query handling for campaigns
+    if (text.includes('tech') || text.includes('technology') || text.includes('টেক')) {
+      matchedTarget = 'campaigns';
+      matchedQuery = { category: 'Technology' };
+    }
+
+    // Set appropriate conversational reply based on match
+    if (matchedTarget) {
+      if (language === 'bn') {
+        replyText = `আপনাকে অনুরোধ করা পেজে নিয়ে যাচ্ছি।`;
       } else {
-        matchedUrl = '/campaigns';
-        replyText = language === 'bn' ? 'সব ক্যাম্পেইনগুলো দেখাচ্ছি।' : 'Showing all campaigns.';
+        replyText = `Taking you there now.`;
       }
     }
 
-    // Try OpenAI API if OPENAI_API_KEY is available and no direct intent matched
+    // Try OpenAI API if OPENAI_API_KEY is available for advanced intent matching
     const apiKey = process.env.OPENAI_API_KEY;
-    if (apiKey && !matchedUrl) {
+    if (apiKey) {
       try {
+        const routesSummary = Object.entries(ROUTES)
+          .map(([k, r]) => `Key: "${k}", Path: "${r.path}", EN: [${r.en.join(', ')}], BN: [${r.bn.join(', ')}]`)
+          .join('\n');
+
         const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -75,11 +58,13 @@ export async function POST(request: Request) {
             messages: [
               {
                 role: 'system',
-                content: `You are an AI voice assistant for a crowdfunding platform. Return JSON with format: {"reply": string, "action": {"type":"navigate","url": string} | null}. 
-Map dashboard phrases (en + bn: "dashboard", "ড্যাশবোর্ড", "take me to my dashboard", "ড্যাশবোর্ডে যাও") to /dashboard.
-Map home phrases to /.
-Map campaigns phrases to /campaigns (with optional ?category= if specified).
-Never ask for confirmation when the user asks to go/open/show something. Whitelist only internal routes (/, /campaigns, /campaigns/<id>, /dashboard); drop anything else.`
+                content: `You are an AI voice assistant for a crowdfunding platform. Available routes:
+${routesSummary}
+
+Return JSON with format: {"reply": string, "action": {"type":"navigate","target": "<route key>", "query": {optional record}} | null}.
+Phrases like "manage users", "show users", "go to X", "open X", "take me to X", "process", "ড্যাশবোর্ড", "ইউজার ম্যানেজমেন্ট" must map to the right key immediately.
+Never ask for confirmation when the user asks to go/open/show something.
+If nothing matches, set action to null and ask which page they want to go to in the requested language (${language}).`
               },
               { role: 'user', content: `Language: ${language}. Transcript: "${transcript}". Current page: "${page}".` }
             ],
@@ -93,18 +78,36 @@ Never ask for confirmation when the user asks to go/open/show something. Whiteli
             const parsed = JSON.parse(content);
             if (parsed && typeof parsed.reply === 'string') {
               replyText = parsed.reply;
-              if (parsed.action && parsed.action.type === 'navigate' && isValidInternalUrl(parsed.action.url)) {
-                matchedUrl = parsed.action.url;
+              if (parsed.action && parsed.action.type === 'navigate' && parsed.action.target && ROUTES[parsed.action.target]) {
+                matchedTarget = parsed.action.target;
+                matchedQuery = parsed.action.query || undefined;
+              } else if (parsed.action === null) {
+                matchedTarget = null;
               }
             }
           }
         }
       } catch (e) {
-        // Fallback to intent mapping
+        // Fallback to our keyword intent matching above
       }
     }
 
-    const action = isValidInternalUrl(matchedUrl!) ? { type: 'navigate', url: matchedUrl } : null;
+    // Validate target against ROUTES
+    let action: { type: 'navigate'; target: string; query?: Record<string, string> } | null = null;
+    if (matchedTarget && ROUTES[matchedTarget]) {
+      // If dynamic route requires campaignId, ensure campaignId is present
+      if (ROUTES[matchedTarget].path.includes(':id') && !campaignId) {
+        // If campaignId is missing for campaignDetail, fallback to campaigns list or keep action null
+        action = null;
+        replyText = language === 'bn' ? 'দয়া করে কোনো নির্দিষ্ট ক্যাম্পেইন পেজে থাকুন অথবা ক্যাম্পেইন নির্বাচন করুন।' : 'Please specify or navigate from a campaign page.';
+      } else {
+        action = {
+          type: 'navigate',
+          target: matchedTarget,
+          ...(matchedQuery ? { query: matchedQuery } : {}),
+        };
+      }
+    }
 
     return NextResponse.json({
       reply: replyText,

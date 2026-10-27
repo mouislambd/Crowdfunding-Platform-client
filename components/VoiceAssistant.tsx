@@ -7,6 +7,7 @@ import { Mic, MicOff, Volume2, VolumeX, Send, X, Sparkles, AlertCircle } from 'l
 import { useSpeech } from '@/lib/useSpeech';
 import { API_URL } from '@/lib/api';
 import { voiceBus } from './voiceBus';
+import { ROUTES, resolveRoutePath } from '@/lib/voiceRoutes';
 
 function isValidInternalUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
@@ -231,12 +232,18 @@ export default function VoiceAssistant() {
         speak(aiReply, langRef.current === 'bn' ? 'bn-BD' : 'en-US');
       }
 
-      // Handle navigation or search actions immediately while speaking
-      if (data.action) {
-        const { type, path, query, url } = data.action;
-        let targetPath = url || path || '';
-        if (type === 'search' && query) {
-          targetPath = `/campaigns?search=${encodeURIComponent(query)}`;
+      // Handle navigation actions using ROUTES and resolveRoutePath
+      if (data.action && data.action.type === 'navigate') {
+        const { target, query } = data.action;
+        let targetPath: string | null = null;
+
+        if (target && ROUTES[target]) {
+          targetPath = resolveRoutePath(target, campaignId, query);
+        } else if (data.action.url || data.action.path) {
+          const raw = data.action.url || data.action.path;
+          if (isValidInternalUrl(raw)) {
+            targetPath = raw;
+          }
         }
 
         if (targetPath && isValidInternalUrl(targetPath)) {
