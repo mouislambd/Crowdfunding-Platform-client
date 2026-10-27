@@ -55,9 +55,9 @@ export default function VoiceAssistant() {
     const spoken = (queryText ?? inputRef.current ?? inputText ?? '').trim();
     if (!spoken) return;
 
-    const route = matchRoute(spoken);
-    if (route) {
-      console.log('matchRoute hit', route.path);
+    const action = matchRoute(spoken);
+    if (action) {
+      console.log('voice action hit', action);
       if (listening) {
         stop();
       }
@@ -68,20 +68,45 @@ export default function VoiceAssistant() {
       setLoading(false);
       setCustomError(null);
       const isBn = langRef.current === 'bn';
-      const labelToUse = isBn ? (route.labelBn || route.label) : route.label;
-      const replyMsg = `Opening ${labelToUse}`;
-      setReply(replyMsg);
-      setInputText('');
-      inputRef.current = '';
-      transcriptRef.current = '';
-      setTranscript('');
+      const labelToUse = isBn ? action.labelBn : action.label;
 
-      if (!mutedRef.current) {
-        speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
+      if (action.type === 'navigate') {
+        const replyMsg = `Opening ${labelToUse}`;
+        setReply(replyMsg);
+        setInputText('');
+        inputRef.current = '';
+        transcriptRef.current = '';
+        setTranscript('');
+
+        if (!mutedRef.current) {
+          speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
+        }
+
+        router.push(action.path);
+        return;
+      } else if (action.type === 'scroll') {
+        const replyMsg = labelToUse;
+        setReply(replyMsg);
+        setInputText('');
+        inputRef.current = '';
+        transcriptRef.current = '';
+        setTranscript('');
+
+        if (!mutedRef.current) {
+          speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
+        }
+
+        if (action.direction === 'down') {
+          window.scrollBy({ top: window.innerHeight * 0.75, behavior: 'smooth' });
+        } else if (action.direction === 'up') {
+          window.scrollBy({ top: -window.innerHeight * 0.75, behavior: 'smooth' });
+        } else if (action.direction === 'top') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (action.direction === 'bottom') {
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+        return;
       }
-
-      router.push(route.path);
-      return;
     }
 
     if (listening) {
@@ -281,7 +306,7 @@ export default function VoiceAssistant() {
 
   const exampleChips = [
     { label: 'Show technology campaigns', q: 'Show technology campaigns' },
-    { label: 'How do credits work?', q: 'How do credits work?' },
+    { label: 'Scroll down / নিচে যাও', q: 'scroll down' },
     { label: 'Take me to my dashboard', q: 'Take me to my dashboard' },
   ];
 

@@ -7,6 +7,18 @@ export interface VoiceRoute {
   bn: string[];
 }
 
+export interface ScrollAction {
+  type: 'scroll';
+  direction: 'down' | 'up' | 'top' | 'bottom';
+  label: string;
+  labelBn: string;
+  keywords: string[];
+}
+
+export type VoiceAction = 
+  | (VoiceRoute & { type: 'navigate'; key: string })
+  | ScrollAction;
+
 const routesObj: Record<string, VoiceRoute> = {
   home: {
     path: '/',
@@ -178,6 +190,37 @@ const routesObj: Record<string, VoiceRoute> = {
   },
 };
 
+export const SCROLL_ACTIONS: ScrollAction[] = [
+  {
+    type: 'scroll',
+    direction: 'down',
+    label: 'Scrolling down',
+    labelBn: 'নিচে স্ক্রল করা হচ্ছে',
+    keywords: ['scroll down', 'down', 'scroll', 'scrol', 'page down', 'নিচে স্ক্রল', 'স্ক্রল ডাউন', 'নিচে যাও', 'niche jao', 'aro niche'],
+  },
+  {
+    type: 'scroll',
+    direction: 'up',
+    label: 'Scrolling up',
+    labelBn: 'উপরে স্ক্রল করা হচ্ছে',
+    keywords: ['scroll up', 'up', 'page up', 'উপরে স্ক্রল', 'স্ক্রল আপ', 'উপরে যাও', 'upore jao', 'aro upore'],
+  },
+  {
+    type: 'scroll',
+    direction: 'top',
+    label: 'Scrolling to top',
+    labelBn: 'পৃষ্ঠার উপরে যাচ্ছি',
+    keywords: ['scroll to top', 'go to top', 'top of page', 'শুরুতে যাও', 'উপরে চলো', 'top'],
+  },
+  {
+    type: 'scroll',
+    direction: 'bottom',
+    label: 'Scrolling to bottom',
+    labelBn: 'পৃষ্ঠার নিচে যাচ্ছি',
+    keywords: ['scroll to bottom', 'go to bottom', 'bottom of page', 'শেষে যাও', 'নিচে চলো', 'bottom'],
+  },
+];
+
 const routeArray = Object.values(routesObj);
 export const ROUTES: Array<VoiceRoute> & Record<string, VoiceRoute> = Object.assign(routeArray, routesObj) as any;
 
@@ -205,12 +248,13 @@ export function resolveRoutePath(target: string, campaignId?: string, query?: Re
   return path;
 }
 
-export function matchRoute(text: string): (VoiceRoute & { key: string }) | null {
+export function matchRoute(text: string): VoiceAction | null {
   const lower = (text || '').toLowerCase().trim();
   if (!lower) return null;
 
-  let bestMatch: { route: VoiceRoute; key: string; score: number } | null = null;
+  let bestMatch: { action: VoiceAction; score: number } | null = null;
 
+  // Check ROUTES
   for (const [key, route] of Object.entries(ROUTES)) {
     if (typeof key !== 'string' || !isNaN(Number(key))) continue;
     if (!route || typeof route !== 'object' || !route.keywords) continue;
@@ -229,32 +273,52 @@ export function matchRoute(text: string): (VoiceRoute & { key: string }) | null 
 
     if (routeScore > 0) {
       if (!bestMatch || routeScore > bestMatch.score) {
+        const campaignMatch = typeof window !== 'undefined' ? window.location.pathname.match(/^\/campaigns\/([^/]+)$/) : null;
+        const campaignId = campaignMatch ? campaignMatch[1] : undefined;
+        const resolvedPath = resolveRoutePath(key, campaignId);
+        if (resolvedPath) {
+          bestMatch = {
+            action: {
+              ...route,
+              type: 'navigate',
+              path: resolvedPath,
+              key,
+            },
+            score: routeScore,
+          };
+        }
+      }
+    }
+  }
+
+  // Check SCROLL_ACTIONS
+  for (const scrollAct of SCROLL_ACTIONS) {
+    let scrollScore = 0;
+    for (const kw of scrollAct.keywords) {
+      if (!kw) continue;
+      const kwLower = kw.toLowerCase();
+      if (lower.includes(kwLower)) {
+        const score = kwLower.length;
+        if (score > scrollScore) {
+          scrollScore = score;
+        }
+      }
+    }
+
+    if (scrollScore > 0) {
+      if (!bestMatch || scrollScore > bestMatch.score) {
         bestMatch = {
-          route,
-          key,
-          score: routeScore,
+          action: scrollAct,
+          score: scrollScore,
         };
       }
     }
   }
 
-  if (bestMatch) {
-    const campaignMatch = typeof window !== 'undefined' ? window.location.pathname.match(/^\/campaigns\/([^/]+)$/) : null;
-    const campaignId = campaignMatch ? campaignMatch[1] : undefined;
-    const resolvedPath = resolveRoutePath(bestMatch.key, campaignId);
-    if (resolvedPath) {
-      return {
-        ...bestMatch.route,
-        path: resolvedPath,
-        key: bestMatch.key,
-      };
-    }
-  }
-
-  return null;
+  return bestMatch ? bestMatch.action : null;
 }
 
 export function matchRouteDeterministic(transcript: string): string | null {
   const matched = matchRoute(transcript);
-  return matched && matched.key ? matched.key : null;
+  return matched && matched.type === 'navigate' ? matched.key : null;
 }
