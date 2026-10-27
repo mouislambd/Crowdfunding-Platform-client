@@ -40,44 +40,143 @@ export default function VoiceAssistant() {
     setTranscript,
   } = useSpeech();
 
+  const transcriptRef = useRef('');
+  const inputRef = useRef('');
+  const isLoadingRef = useRef(loading);
+  const isSpeakingRef = useRef(speaking);
+  const langRef = useRef(lang);
+  const isOpenRef = useRef(isOpen);
+  const mutedRef = useRef(muted);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const prevSpeakingRef = useRef(false);
+
+  const sendNow = useCallback((text: string) => {
+    console.log('VoiceAssistant sendNow:', text);
+    if (!text) return;
+    const trimmed = text.trim();
+    if (trimmed.length < 2) return;
+    if (isLoadingRef.current || isSpeakingRef.current) return;
+
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
+    stop();
+
+    transcriptRef.current = '';
+    setTranscript('');
+    setInputText('');
+    inputRef.current = '';
+
+    handleSend(trimmed);
+  }, [stop]);
+
+  const handleResult = useCallback((final: string, interim: string) => {
+    console.log('VoiceAssistant onresult:', { final, interim });
+    let currentFinal = transcriptRef.current;
+    if (final) {
+      currentFinal = currentFinal ? `${currentFinal} ${final}` : final;
+      transcriptRef.current = currentFinal;
+      setTranscript(currentFinal);
+    }
+
+    const displayText = currentFinal + (interim ? ` ${interim}` : '');
+    setInputText(displayText);
+    inputRef.current = displayText;
+
+    if (final) {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      sendNow(currentFinal);
+    } else if (interim) {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+      silenceTimerRef.current = setTimeout(() => {
+        sendNow(transcriptRef.current);
+      }, 1200);
+    }
+  }, [sendNow, setTranscript]);
+
   // Subscribe to voiceBus for preset questions from other pages
   useEffect(() => {
     const unsubscribe = voiceBus.subscribe((question) => {
       setIsOpen(true);
+      isOpenRef.current = true;
       setInputText(question);
+      inputRef.current = question;
       handleSend(question);
     });
     return unsubscribe;
-  }, [lang, pathname]);
+  }, []);
 
-  // Sync speech transcript to inputText when listening
+  // Hands-free loop: after reply is spoken, restart listening
   useEffect(() => {
-    if (transcript) {
-      setInputText(transcript);
+    if (prevSpeakingRef.current && !speaking) {
+      if (isOpenRef.current && !isLoadingRef.current) {
+        setTimeout(() => {
+          if (isOpenRef.current && !isLoadingRef.current && !isSpeakingRef.current) {
+            start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
+          }
+        }, 500);
+      }
     }
-  }, [transcript]);
+    prevSpeakingRef.current = speaking;
+  }, [speaking, start, handleResult]);
+
+  // Cleanup on close
+  useEffect(() => {
+    if (!isOpen) {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      if (listening) {
+        stop();
+      }
+    }
+    isOpenRef.current = isOpen;
+  }, [isOpen, listening, stop]);
 
   const handleToggleListening = () => {
     if (listening) {
       stop();
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
     } else {
+      transcriptRef.current = '';
       setTranscript('');
       setInputText('');
-      start(lang === 'bn' ? 'bn-BD' : 'en-US');
+      inputRef.current = '';
+      start(lang === 'bn' ? 'bn-BD' : 'en-US', handleResult);
     }
   };
 
   const handleSend = async (queryText?: string) => {
-    const textToSend = queryText || inputText || transcript;
+    const textToSend = queryText ?? inputRef.current ?? inputText;
     if (!textToSend.trim()) return;
 
     if (listening) {
       stop();
     }
 
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
     setLoading(true);
     setCustomError(null);
     setReply('');
+    transcriptRef.current = '';
+    setTranscript('');
+    setInputText('');
+    inputRef.current = '';
 
     // Extract campaignId if on /campaigns/<id>
     const campaignMatch = pathname.match(/^\/campaigns\/([^/]+)$/);
@@ -89,7 +188,7 @@ export default function VoiceAssistant() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transcript: textToSend,
-          lang: lang === 'bn' ? 'bn' : 'en',
+          lang: langRef.current === 'bn' ? 'bn' : 'en',
           campaignId,
           page: pathname,
         }),
@@ -111,8 +210,8 @@ export default function VoiceAssistant() {
       setReply(aiReply);
 
       // Speak reply if not muted
-      if (!muted) {
-        speak(aiReply, lang === 'bn' ? 'bn-BD' : 'en-US');
+      if (!mutedRef.current) {
+        speak(aiReply, langRef.current === 'bn' ? 'bn-BD' : 'en-US');
       }
 
       // Handle navigation or search actions with validation
@@ -138,6 +237,13 @@ export default function VoiceAssistant() {
       setCustomError(err.message || 'Something went wrong.');
     } finally {
       setLoading(false);
+      if (mutedRef.current && isOpenRef.current) {
+        setTimeout(() => {
+          if (isOpenRef.current && !isLoadingRef.current && !isSpeakingRef.current) {
+            start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
+          }
+        }, 500);
+      }
     }
   };
 
@@ -200,9 +306,10 @@ export default function VoiceAssistant() {
                   onClick={() => {
                     const nextLang = lang === 'en' ? 'bn' : 'en';
                     setLang(nextLang);
+                    langRef.current = nextLang;
                     if (listening) {
                       stop();
-                      start(nextLang === 'bn' ? 'bn-BD' : 'en-US');
+                      start(nextLang === 'bn' ? 'bn-BD' : 'en-US', handleResult);
                     }
                   }}
                   className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold transition-colors border border-white/10"
