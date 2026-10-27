@@ -1,46 +1,35 @@
 import { NextResponse } from 'next/server';
-import { ROUTES } from '@/lib/voiceRoutes';
+import { ROUTES, matchRouteDeterministic } from '@/lib/voiceRoutes';
 
 export async function POST(request: Request) {
   try {
     const { transcript, lang, campaignId, page } = await request.json();
-    const text = (transcript || '').toLowerCase().trim();
     const language = lang === 'bn' ? 'bn' : 'en';
+
+    console.log('AI Assistant request received. Route keys count:', Object.keys(ROUTES).length, 'Current page:', page);
 
     let matchedTarget: string | null = null;
     let matchedQuery: Record<string, string> | undefined = undefined;
     let replyText = language === 'bn' ? 'আপনি কোন পেজে যেতে চান? অনুগ্রহ করে স্পষ্ট করে বলুন।' : 'Which page would you like to open? Please specify.';
 
-    // Check intent matching against ROUTES (English and Bengali keywords)
-    for (const [key, route] of Object.entries(ROUTES)) {
-      const allKeywords = [...route.en, ...route.bn];
-      for (const kw of allKeywords) {
-        if (text.includes(kw.toLowerCase())) {
-          matchedTarget = key;
-          break;
-        }
-      }
-      if (matchedTarget) break;
+    // 1. Check deterministic fallback first
+    const deterministicKey = matchRouteDeterministic(transcript);
+    if (deterministicKey && ROUTES[deterministicKey]) {
+      matchedTarget = deterministicKey;
     }
 
-    // Special category query handling for campaigns
-    if (text.includes('tech') || text.includes('technology') || text.includes('টেক')) {
-      matchedTarget = 'campaigns';
-      matchedQuery = { category: 'Technology' };
-    }
-
-    // Set appropriate conversational reply based on match
-    if (matchedTarget) {
-      if (language === 'bn') {
-        replyText = `আপনাকে অনুরোধ করা পেজে নিয়ে যাচ্ছি।`;
-      } else {
-        replyText = `Taking you there now.`;
+    // Special category query handling for campaigns if not yet matched
+    if (!matchedTarget) {
+      const text = (transcript || '').toLowerCase();
+      if ((text.includes('tech') || text.includes('technology') || text.includes('টেক')) && (text.includes('campaign') || text.includes('ক্যাম্পেইন'))) {
+        matchedTarget = 'campaigns';
+        matchedQuery = { category: 'Technology' };
       }
     }
 
-    // Try OpenAI API if OPENAI_API_KEY is available for advanced intent matching
+    // 2. If no deterministic match, try OpenAI API with full ROUTES list and current page
     const apiKey = process.env.OPENAI_API_KEY;
-    if (apiKey) {
+    if (apiKey && !matchedTarget) {
       try {
         const routesSummary = Object.entries(ROUTES)
           .map(([k, r]) => `Key: "${k}", Path: "${r.path}", EN: [${r.en.join(', ')}], BN: [${r.bn.join(', ')}]`)
@@ -58,11 +47,12 @@ export async function POST(request: Request) {
             messages: [
               {
                 role: 'system',
-                content: `You are an AI voice assistant for a crowdfunding platform. Available routes:
+                content: `You are an AI voice assistant for a crowdfunding platform. Current user page: "${page}".
+Available routes (single source of truth):
 ${routesSummary}
 
 Return JSON with format: {"reply": string, "action": {"type":"navigate","target": "<route key>", "query": {optional record}} | null}.
-Phrases like "manage users", "show users", "go to X", "open X", "take me to X", "process", "ড্যাশবোর্ড", "ইউজার ম্যানেজমেন্ট" must map to the right key immediately.
+Phrases like "manage users", "show users", "go to X", "open X", "take me to X", "process", "ড্যাশবোর্ড", "ইউজার ম্যানেজমেন্ট", "withdrawals", "reports" must map to the right key immediately.
 Never ask for confirmation when the user asks to go/open/show something.
 If nothing matches, set action to null and ask which page they want to go to in the requested language (${language}).`
               },
@@ -88,16 +78,22 @@ If nothing matches, set action to null and ask which page they want to go to in 
           }
         }
       } catch (e) {
-        // Fallback to our keyword intent matching above
+        // Fallback or maintain replyText
       }
     }
 
-    // Validate target against ROUTES
+    if (matchedTarget) {
+      if (language === 'bn') {
+        replyText = `আপনাকে অনুরোধ করা পেজে নিয়ে যাচ্ছি।`;
+      } else {
+        replyText = `Taking you there now.`;
+      }
+    }
+
+    // Validate target against ROUTES (never trust raw URLs)
     let action: { type: 'navigate'; target: string; query?: Record<string, string> } | null = null;
     if (matchedTarget && ROUTES[matchedTarget]) {
-      // If dynamic route requires campaignId, ensure campaignId is present
       if (ROUTES[matchedTarget].path.includes(':id') && !campaignId) {
-        // If campaignId is missing for campaignDetail, fallback to campaigns list or keep action null
         action = null;
         replyText = language === 'bn' ? 'দয়া করে কোনো নির্দিষ্ট ক্যাম্পেইন পেজে থাকুন অথবা ক্যাম্পেইন নির্বাচন করুন।' : 'Please specify or navigate from a campaign page.';
       } else {
