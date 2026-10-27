@@ -8,6 +8,23 @@ import { useSpeech } from '@/lib/useSpeech';
 import { API_URL } from '@/lib/api';
 import { voiceBus } from './voiceBus';
 
+function isValidInternalUrl(url: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+  if (!url.startsWith('/') || url.startsWith('//') || url.includes('://') || url.includes('javascript:')) {
+    return false;
+  }
+  if (url === '/' || url === '/campaigns' || url === '/dashboard') {
+    return true;
+  }
+  if (/^\/campaigns\/[^/]+$/.test(url)) {
+    return true;
+  }
+  if (/^\/dashboard(\/.*)?$/.test(url)) {
+    return true;
+  }
+  return false;
+}
+
 export default function VoiceAssistant() {
   const pathname = usePathname();
   const router = useRouter();
@@ -183,7 +200,7 @@ export default function VoiceAssistant() {
     const campaignId = campaignMatch ? campaignMatch[1] : undefined;
 
     try {
-      const res = await fetch(`${API_URL}/api/ai/assistant`, {
+      const res = await fetch(`/api/ai/assistant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -214,23 +231,16 @@ export default function VoiceAssistant() {
         speak(aiReply, langRef.current === 'bn' ? 'bn-BD' : 'en-US');
       }
 
-      // Handle navigation or search actions with validation
+      // Handle navigation or search actions immediately while speaking
       if (data.action) {
-        const { type, path, query } = data.action;
-        let targetPath = '';
-        if (type === 'navigate' && path) {
-          targetPath = path;
-        } else if (type === 'search' && query) {
+        const { type, path, query, url } = data.action;
+        let targetPath = url || path || '';
+        if (type === 'search' && query) {
           targetPath = `/campaigns?search=${encodeURIComponent(query)}`;
         }
 
-        if (targetPath) {
-          // Validate: must start with "/" and contain no "//" or protocol
-          if (targetPath.startsWith('/') && !targetPath.startsWith('//') && !targetPath.includes('://')) {
-            setTimeout(() => {
-              router.push(targetPath);
-            }, 1200);
-          }
+        if (targetPath && isValidInternalUrl(targetPath)) {
+          router.push(targetPath);
         }
       }
     } catch (err: any) {
@@ -401,6 +411,7 @@ export default function VoiceAssistant() {
                   key={idx}
                   onClick={() => {
                     setInputText(chip.q);
+                    inputRef.current = chip.q;
                     handleSend(chip.q);
                   }}
                   className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/15 text-xs text-gray-300 hover:text-white border border-white/10 transition-colors"
