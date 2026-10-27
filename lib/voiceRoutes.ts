@@ -24,9 +24,9 @@ const routesObj: Record<string, VoiceRoute> = {
     path: '/',
     label: 'Home',
     labelBn: 'হোম পেজ',
-    keywords: ['home', 'homepage', 'main', 'landing', 'start', 'হোম', 'মূল পাতা', 'হোম পেজ', 'hom'],
-    en: ['home', 'homepage', 'main', 'landing', 'start'],
-    bn: ['হোম', 'মূল পাতা', 'হোম পেজ'],
+    keywords: ['home', 'homepage', 'landing', 'landing page', 'main', 'start', 'হোম', 'মূল পাতা', 'হোম পেজ', 'ল্যান্ডিং পেজ', 'hom'],
+    en: ['home', 'homepage', 'landing', 'landing page', 'main', 'start'],
+    bn: ['হোম', 'মূল পাতা', 'হোম পেজ', 'ল্যান্ডিং পেজ'],
   },
   campaigns: {
     path: '/campaigns',
@@ -261,6 +261,12 @@ export function matchRoute(text: string): VoiceAction | null {
     .replace(/camp[a]*ign[s]*/g, 'campaigns')
     .replace(/report[s]*/g, 'reports');
 
+  // Strip common conversational filler words to extract core intent
+  const fillerWords = new Set(['go', 'to', 'the', 'a', 'an', 'please', 'take', 'me', 'open', 'show', 'navigate', 'page', 'site', 'view', 'see', 'kindly', 'can', 'you', 'i', 'want', 'to', 'let', 's', 'karo', 'jaw', 'jao', 'dekhao', 'khulo', 'amake', 'niye', 'cholo', 'ay', 'ai', 'ektu', 'dike']);
+  const tokens = normalizedText.split(/\s+/);
+  const coreIntentTokens = tokens.filter(t => !fillerWords.has(t));
+  const coreIntentText = coreIntentTokens.join(' ');
+
   let bestAction: VoiceAction | null = null;
   let bestScore = 0;
 
@@ -270,11 +276,11 @@ export function matchRoute(text: string): VoiceAction | null {
       const kwLower = kw.toLowerCase();
       let score = 0;
 
-      if (rawText.includes(kwLower) || normalizedText.includes(kwLower)) {
-        score = kwLower.length * 2;
+      if (rawText.includes(kwLower) || normalizedText.includes(kwLower) || coreIntentText.includes(kwLower)) {
+        score = kwLower.length * 3;
       } else {
         const kwTokens = kwLower.split(/\s+/);
-        const textTokens = normalizedText.split(/\s+/);
+        const textTokens = coreIntentTokens.length > 0 ? coreIntentTokens : normalizedText.split(/\s+/);
         let matchedTokens = 0;
         for (const kt of kwTokens) {
           if (textTokens.some(tt => tt.includes(kt) || kt.includes(tt) || (tt.length > 2 && kt.length > 2 && Math.abs(tt.length - kt.length) <= 2 && (tt.startsWith(kt.slice(0, 2)) || kt.startsWith(tt.slice(0, 2)))))) {
