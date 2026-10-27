@@ -9,21 +9,46 @@ import { API_URL } from '@/lib/api';
 import { voiceBus } from './voiceBus';
 import { ROUTES, resolveRoutePath } from '@/lib/voiceRoutes';
 
-function isValidInternalUrl(url: string): boolean {
-  if (!url || typeof url !== 'string') return false;
-  if (!url.startsWith('/') || url.startsWith('//') || url.includes('://') || url.includes('javascript:')) {
-    return false;
+function matchRoute(text: string): { key: string; path: string; label: string } | null {
+  const lower = (text || '').toLowerCase().trim();
+  if (!lower) return null;
+
+  let bestMatch: { key: string; path: string; label: string; score: number } | null = null;
+
+  for (const [key, route] of Object.entries(ROUTES)) {
+    let routeScore = 0;
+    for (const kw of route.keywords) {
+      const kwLower = kw.toLowerCase();
+      if (lower.includes(kwLower)) {
+        const score = kwLower.length;
+        if (score > routeScore) {
+          routeScore = score;
+        }
+      }
+    }
+
+    if (routeScore > 0) {
+      if (!bestMatch || routeScore > bestMatch.score) {
+        bestMatch = {
+          key,
+          path: route.path,
+          label: route.label,
+          score: routeScore,
+        };
+      }
+    }
   }
-  if (url === '/' || url === '/campaigns' || url === '/dashboard') {
-    return true;
+
+  if (bestMatch) {
+    const campaignMatch = typeof window !== 'undefined' ? window.location.pathname.match(/^\/campaigns\/([^/]+)$/) : null;
+    const campaignId = campaignMatch ? campaignMatch[1] : undefined;
+    const resolvedPath = resolveRoutePath(bestMatch.key, campaignId);
+    if (resolvedPath) {
+      return { key: bestMatch.key, path: resolvedPath, label: bestMatch.label };
+    }
   }
-  if (/^\/campaigns\/[^/]+$/.test(url)) {
-    return true;
-  }
-  if (/^\/dashboard(\/.*)?$/.test(url)) {
-    return true;
-  }
-  return false;
+
+  return null;
 }
 
 export default function VoiceAssistant() {
@@ -188,6 +213,31 @@ export default function VoiceAssistant() {
       silenceTimerRef.current = null;
     }
 
+    // Extract campaignId if on /campaigns/<id>
+    const campaignMatch = pathname.match(/^\/campaigns\/([^/]+)$/);
+    const campaignId = campaignMatch ? campaignMatch[1] : undefined;
+
+    // Check client-side route match first (skip server call if matched)
+    const matched = matchRoute(textToSend);
+    if (matched) {
+      setLoading(false);
+      setCustomError(null);
+      const isBn = langRef.current === 'bn';
+      const replyMsg = isBn ? `${matched.label} পেজটি খুলছি` : `Opening ${matched.label}`;
+      setReply(replyMsg);
+      setInputText('');
+      inputRef.current = '';
+      transcriptRef.current = '';
+      setTranscript('');
+
+      if (!mutedRef.current) {
+        speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
+      }
+
+      router.push(matched.path);
+      return;
+    }
+
     setLoading(true);
     setCustomError(null);
     setReply('');
@@ -195,10 +245,6 @@ export default function VoiceAssistant() {
     setTranscript('');
     setInputText('');
     inputRef.current = '';
-
-    // Extract campaignId if on /campaigns/<id>
-    const campaignMatch = pathname.match(/^\/campaigns\/([^/]+)$/);
-    const campaignId = campaignMatch ? campaignMatch[1] : undefined;
 
     try {
       const res = await fetch(`/api/ai/assistant`, {
@@ -232,22 +278,14 @@ export default function VoiceAssistant() {
         speak(aiReply, langRef.current === 'bn' ? 'bn-BD' : 'en-US');
       }
 
-      // Handle navigation actions using ROUTES and resolveRoutePath
+      // Handle server action: resolve target only through ROUTES; ignore unknown keys
       if (data.action && data.action.type === 'navigate') {
         const { target, query } = data.action;
-        let targetPath: string | null = null;
-
         if (target && ROUTES[target]) {
-          targetPath = resolveRoutePath(target, campaignId, query);
-        } else if (data.action.url || data.action.path) {
-          const raw = data.action.url || data.action.path;
-          if (isValidInternalUrl(raw)) {
-            targetPath = raw;
+          const targetPath = resolveRoutePath(target, campaignId, query);
+          if (targetPath) {
+            router.push(targetPath);
           }
-        }
-
-        if (targetPath && isValidInternalUrl(targetPath)) {
-          router.push(targetPath);
         }
       }
     } catch (err: any) {
