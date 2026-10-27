@@ -7,49 +7,7 @@ import { Mic, MicOff, Volume2, VolumeX, Send, X, Sparkles, AlertCircle } from 'l
 import { useSpeech } from '@/lib/useSpeech';
 import { API_URL } from '@/lib/api';
 import { voiceBus } from './voiceBus';
-import { ROUTES, resolveRoutePath } from '@/lib/voiceRoutes';
-
-function matchRoute(text: string): { key: string; path: string; label: string } | null {
-  const lower = (text || '').toLowerCase().trim();
-  if (!lower) return null;
-
-  let bestMatch: { key: string; path: string; label: string; score: number } | null = null;
-
-  for (const [key, route] of Object.entries(ROUTES)) {
-    let routeScore = 0;
-    for (const kw of route.keywords) {
-      const kwLower = kw.toLowerCase();
-      if (lower.includes(kwLower)) {
-        const score = kwLower.length;
-        if (score > routeScore) {
-          routeScore = score;
-        }
-      }
-    }
-
-    if (routeScore > 0) {
-      if (!bestMatch || routeScore > bestMatch.score) {
-        bestMatch = {
-          key,
-          path: route.path,
-          label: route.label,
-          score: routeScore,
-        };
-      }
-    }
-  }
-
-  if (bestMatch) {
-    const campaignMatch = typeof window !== 'undefined' ? window.location.pathname.match(/^\/campaigns\/([^/]+)$/) : null;
-    const campaignId = campaignMatch ? campaignMatch[1] : undefined;
-    const resolvedPath = resolveRoutePath(bestMatch.key, campaignId);
-    if (resolvedPath) {
-      return { key: bestMatch.key, path: resolvedPath, label: bestMatch.label };
-    }
-  }
-
-  return null;
-}
+import { ROUTES, resolveRoutePath, matchRoute } from '@/lib/voiceRoutes';
 
 export default function VoiceAssistant() {
   const pathname = usePathname();
@@ -93,116 +51,38 @@ export default function VoiceAssistant() {
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const prevSpeakingRef = useRef(false);
 
-  const sendNow = useCallback((text: string) => {
-    console.log('VoiceAssistant sendNow:', text);
-    if (!text) return;
-    const trimmed = text.trim();
-    if (trimmed.length < 2) return;
-    if (isLoadingRef.current || isSpeakingRef.current) return;
+  const handleSend = async (queryText?: string) => {
+    const spoken = (queryText ?? inputRef.current ?? inputText ?? '').trim();
+    if (!spoken) return;
 
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-
-    stop();
-
-    transcriptRef.current = '';
-    setTranscript('');
-    setInputText('');
-    inputRef.current = '';
-
-    handleSend(trimmed);
-  }, [stop]);
-
-  const handleResult = useCallback((final: string, interim: string) => {
-    console.log('VoiceAssistant onresult:', { final, interim });
-    let currentFinal = transcriptRef.current;
-    if (final) {
-      currentFinal = currentFinal ? `${currentFinal} ${final}` : final;
-      transcriptRef.current = currentFinal;
-      setTranscript(currentFinal);
-    }
-
-    const displayText = currentFinal + (interim ? ` ${interim}` : '');
-    setInputText(displayText);
-    inputRef.current = displayText;
-
-    if (final) {
-      if (silenceTimerRef.current) {
-        clearTimeout(silenceTimerRef.current);
-        silenceTimerRef.current = null;
-      }
-      sendNow(currentFinal);
-    } else if (interim) {
-      if (silenceTimerRef.current) {
-        clearTimeout(silenceTimerRef.current);
-      }
-      silenceTimerRef.current = setTimeout(() => {
-        sendNow(transcriptRef.current);
-      }, 1200);
-    }
-  }, [sendNow, setTranscript]);
-
-  // Subscribe to voiceBus for preset questions from other pages
-  useEffect(() => {
-    const unsubscribe = voiceBus.subscribe((question) => {
-      setIsOpen(true);
-      isOpenRef.current = true;
-      setInputText(question);
-      inputRef.current = question;
-      handleSend(question);
-    });
-    return unsubscribe;
-  }, []);
-
-  // Hands-free loop: after reply is spoken, restart listening
-  useEffect(() => {
-    if (prevSpeakingRef.current && !speaking) {
-      if (isOpenRef.current && !isLoadingRef.current) {
-        setTimeout(() => {
-          if (isOpenRef.current && !isLoadingRef.current && !isSpeakingRef.current) {
-            start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
-          }
-        }, 500);
-      }
-    }
-    prevSpeakingRef.current = speaking;
-  }, [speaking, start, handleResult]);
-
-  // Cleanup on close
-  useEffect(() => {
-    if (!isOpen) {
-      if (silenceTimerRef.current) {
-        clearTimeout(silenceTimerRef.current);
-        silenceTimerRef.current = null;
-      }
+    const route = matchRoute(spoken);
+    if (route) {
+      console.log('matchRoute hit', route.path);
       if (listening) {
         stop();
       }
-    }
-    isOpenRef.current = isOpen;
-  }, [isOpen, listening, stop]);
-
-  const handleToggleListening = () => {
-    if (listening) {
-      stop();
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = null;
       }
-    } else {
-      transcriptRef.current = '';
-      setTranscript('');
+      setLoading(false);
+      setCustomError(null);
+      const isBn = langRef.current === 'bn';
+      const labelToUse = isBn ? (route.labelBn || route.label) : route.label;
+      const replyMsg = `Opening ${labelToUse}`;
+      setReply(replyMsg);
       setInputText('');
       inputRef.current = '';
-      start(lang === 'bn' ? 'bn-BD' : 'en-US', handleResult);
-    }
-  };
+      transcriptRef.current = '';
+      setTranscript('');
 
-  const handleSend = async (queryText?: string) => {
-    const textToSend = queryText ?? inputRef.current ?? inputText;
-    if (!textToSend.trim()) return;
+      if (!mutedRef.current) {
+        speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
+      }
+
+      router.push(route.path);
+      return;
+    }
 
     if (listening) {
       stop();
@@ -217,27 +97,6 @@ export default function VoiceAssistant() {
     const campaignMatch = pathname.match(/^\/campaigns\/([^/]+)$/);
     const campaignId = campaignMatch ? campaignMatch[1] : undefined;
 
-    // Check client-side route match first (skip server call if matched)
-    const matched = matchRoute(textToSend);
-    if (matched) {
-      setLoading(false);
-      setCustomError(null);
-      const isBn = langRef.current === 'bn';
-      const replyMsg = isBn ? `${matched.label} পেজটি খুলছি` : `Opening ${matched.label}`;
-      setReply(replyMsg);
-      setInputText('');
-      inputRef.current = '';
-      transcriptRef.current = '';
-      setTranscript('');
-
-      if (!mutedRef.current) {
-        speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
-      }
-
-      router.push(matched.path);
-      return;
-    }
-
     setLoading(true);
     setCustomError(null);
     setReply('');
@@ -251,7 +110,7 @@ export default function VoiceAssistant() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          transcript: textToSend,
+          transcript: spoken,
           lang: langRef.current === 'bn' ? 'bn' : 'en',
           campaignId,
           page: pathname,
@@ -299,6 +158,113 @@ export default function VoiceAssistant() {
           }
         }, 500);
       }
+    }
+  };
+
+  const sendNow = useCallback((text: string) => {
+    console.log('VoiceAssistant sendNow:', text);
+    if (!text) return;
+    const trimmed = text.trim();
+    if (trimmed.length < 2) return;
+    if (isLoadingRef.current || isSpeakingRef.current) return;
+
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
+    stop();
+
+    transcriptRef.current = '';
+    setTranscript('');
+    setInputText('');
+    inputRef.current = '';
+
+    handleSend(trimmed);
+  }, [stop, handleSend]);
+
+  const handleResult = useCallback((final: string, interim: string) => {
+    console.log('VoiceAssistant onresult:', { final, interim });
+    let currentFinal = transcriptRef.current;
+    if (final) {
+      currentFinal = currentFinal ? `${currentFinal} ${final}` : final;
+      transcriptRef.current = currentFinal;
+      setTranscript(currentFinal);
+    }
+
+    const displayText = currentFinal + (interim ? ` ${interim}` : '');
+    setInputText(displayText);
+    inputRef.current = displayText;
+
+    if (final) {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      sendNow(currentFinal);
+    } else if (interim) {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+      silenceTimerRef.current = setTimeout(() => {
+        sendNow(transcriptRef.current);
+      }, 1200);
+    }
+  }, [sendNow, setTranscript]);
+
+  // Subscribe to voiceBus for preset questions from other pages
+  useEffect(() => {
+    const unsubscribe = voiceBus.subscribe((question) => {
+      setIsOpen(true);
+      isOpenRef.current = true;
+      setInputText(question);
+      inputRef.current = question;
+      handleSend(question);
+    });
+    return unsubscribe;
+  }, [handleSend]);
+
+  // Hands-free loop: after reply is spoken, restart listening
+  useEffect(() => {
+    if (prevSpeakingRef.current && !speaking) {
+      if (isOpenRef.current && !isLoadingRef.current) {
+        setTimeout(() => {
+          if (isOpenRef.current && !isLoadingRef.current && !isSpeakingRef.current) {
+            start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
+          }
+        }, 500);
+      }
+    }
+    prevSpeakingRef.current = speaking;
+  }, [speaking, start, handleResult]);
+
+  // Cleanup on close
+  useEffect(() => {
+    if (!isOpen) {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      if (listening) {
+        stop();
+      }
+    }
+    isOpenRef.current = isOpen;
+  }, [isOpen, listening, stop]);
+
+  const handleToggleListening = () => {
+    if (listening) {
+      stop();
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+    } else {
+      transcriptRef.current = '';
+      setTranscript('');
+      setInputText('');
+      inputRef.current = '';
+      start(lang === 'bn' ? 'bn-BD' : 'en-US', handleResult);
     }
   };
 
