@@ -24,7 +24,7 @@ const routesObj: Record<string, VoiceRoute> = {
     path: '/',
     label: 'Home',
     labelBn: 'হোম পেজ',
-    keywords: ['home', 'homepage', 'main', 'landing', 'start', 'হোম', 'মূল পাতা', 'হোম পেজ'],
+    keywords: ['home', 'homepage', 'main', 'landing', 'start', 'হোম', 'মূল পাতা', 'হোম পেজ', 'hom'],
     en: ['home', 'homepage', 'main', 'landing', 'start'],
     bn: ['হোম', 'মূল পাতা', 'হোম পেজ'],
   },
@@ -32,7 +32,7 @@ const routesObj: Record<string, VoiceRoute> = {
     path: '/campaigns',
     label: 'Campaigns',
     labelBn: 'ক্যাম্পেইনসমূহ',
-    keywords: ['campaigns', 'all campaigns', 'explore campaigns', 'browse projects', 'projects', 'ক্যাম্পেইন', 'সব ক্যাম্পেইন', 'প্রজেক্ট দেখুন', 'সব প্রজেক্ট', 'ক্যাম্পেইনগুলো'],
+    keywords: ['campaigns', 'all campaigns', 'explore campaigns', 'browse projects', 'projects', 'campains', 'kampein', 'ক্যাম্পেইন', 'সব ক্যাম্পেইন', 'প্রজেক্ট দেখুন', 'সব প্রজেক্ট', 'ক্যাম্পেইনগুলো'],
     en: ['campaigns', 'all campaigns', 'explore campaigns', 'browse projects', 'projects'],
     bn: ['ক্যাম্পেইন', 'সব ক্যাম্পেইন', 'প্রজেক্ট দেখুন', 'সব প্রজেক্ট', 'ক্যাম্পেইনগুলো'],
   },
@@ -72,7 +72,7 @@ const routesObj: Record<string, VoiceRoute> = {
     path: '/dashboard',
     label: 'Dashboard',
     labelBn: 'ড্যাশবোর্ড',
-    keywords: ['dashboard', 'my dashboard', 'overview', 'main dashboard', 'ড্যাশবোর্ড', 'আমার ড্যাশবোর্ড', 'ওভারভিউ'],
+    keywords: ['dashboard', 'my dashboard', 'overview', 'main dashboard', 'dashbord', 'dashoard', 'dasbord', 'ড্যাশবোর্ড', 'আমার ড্যাশবোর্ড', 'ওভারভিউ'],
     en: ['dashboard', 'my dashboard', 'overview', 'main dashboard'],
     bn: ['ড্যাশবোর্ড', 'আমার ড্যাশবোর্ড', 'ওভারভিউ'],
   },
@@ -104,7 +104,7 @@ const routesObj: Record<string, VoiceRoute> = {
     path: '/dashboard/manage-users',
     label: 'Manage Users',
     labelBn: 'ইউজার ম্যানেজমেন্ট',
-    keywords: ['manage users', 'manage user', 'users', 'all users', 'user management', 'show users', 'admin users', 'ইউজার', 'ব্যবহারকারী', 'ব্যবহারকারী পরিচালনা', 'ইউজার ম্যানেজমেন্ট', 'ইউজার লিস্ট', 'সব ইউজার'],
+    keywords: ['manage users', 'manage user', 'users', 'all users', 'user management', 'show users', 'admin users', 'mange users', 'mange user', 'usres', 'usrs', 'user list', 'ইউজার', 'ব্যবহারকারী', 'ব্যবহারকারী পরিচালনা', 'ইউজার ম্যানেজমেন্ট', 'ইউজার লিস্ট', 'সব ইউজার'],
     en: ['manage users', 'manage user', 'users', 'all users', 'user management', 'show users', 'admin users'],
     bn: ['ইউজার', 'ব্যবহারকারী', 'ব্যবহারকারী পরিচালনা', 'ইউজার ম্যানেজমেন্ট', 'ইউজার লিস্ট', 'সব ইউজার'],
   },
@@ -112,7 +112,7 @@ const routesObj: Record<string, VoiceRoute> = {
     path: '/dashboard/manage-campaigns',
     label: 'Manage Campaigns',
     labelBn: 'ক্যাম্পেইন পরিচালনা',
-    keywords: ['manage campaigns', 'campaign approval', 'campaigns admin', 'approve campaigns', 'edit campaigns', 'builder campaigns', 'ক্যাম্পেইন পরিচালনা', 'ম্যানেজ ক্যাম্পেইন', 'ক্যাম্পেইন ম্যানেজমেন্ট', 'ক্যাম্পেইন সমূহ', 'ক্যাম্পেইন ম্যানেজ'],
+    keywords: ['manage campaigns', 'campaign approval', 'campaigns admin', 'approve campaigns', 'edit campaigns', 'builder campaigns', 'mange campaigns', 'ক্যাম্পেইন পরিচালনা', 'ম্যানেজ ক্যাম্পেইন', 'ক্যাম্পেইন ম্যানেজমেন্ট', 'ক্যাম্পেইন সমূহ', 'ক্যাম্পেইন ম্যানেজ'],
     en: ['manage campaigns', 'campaign approval', 'campaigns admin', 'approve campaigns', 'edit campaigns', 'builder campaigns'],
     bn: ['ক্যাম্পেইন পরিচালনা', 'ম্যানেজ ক্যাম্পেইন', 'ক্যাম্পেইন ম্যানেজমেন্ট', 'ক্যাম্পেইন সমূহ', 'ক্যাম্পেইন ম্যানেজ'],
   },
@@ -128,7 +128,7 @@ const routesObj: Record<string, VoiceRoute> = {
     path: '/dashboard/withdrawal-requests',
     label: 'Withdrawal Requests',
     labelBn: 'উইথড্রয়াল রিকোয়েস্ট',
-    keywords: ['withdrawal requests', 'withdraw requests', 'pending withdrawals', 'withdrawal approval', 'উইথড্রয়াল রিকোয়েস্ট', 'টাকা তোলার আবেদন', 'উইথড্র রিকোয়েস্ট'],
+    keywords: ['withdrawal requests', 'withdraw requests', 'pending withdrawals', 'withdrawal approval', 'withdrwal requests', 'উইথড্রয়াল রিকোয়েস্ট', 'টাকা তোলার আবেদন', 'উইথড্র রিকোয়েস্ট'],
     en: ['withdrawal requests', 'withdraw requests', 'pending withdrawals', 'withdrawal approval'],
     bn: ['উইথড্রয়াল রিকোয়েস্ট', 'টাকা তোলার আবেদন', 'উইথড্র রিকোয়েস্ট'],
   },
@@ -136,7 +136,7 @@ const routesObj: Record<string, VoiceRoute> = {
     path: '/dashboard/withdrawals',
     label: 'Withdrawals',
     labelBn: 'উইথড্রয়াল',
-    keywords: ['withdrawal requests', 'withdrawals', 'withdraw funds', 'request withdrawal', 'withdraw', 'withdrawal', 'উইথড্রয়াল', 'টাকা তোলা', 'উইথড্র'],
+    keywords: ['withdrawal requests', 'withdrawals', 'withdraw funds', 'request withdrawal', 'withdraw', 'withdrawal', 'withdrwal', 'উইথড্রয়াল', 'টাকা তোলা', 'উইথড্র'],
     en: ['withdrawal requests', 'withdrawals', 'withdraw funds', 'request withdrawal', 'withdraw', 'withdrawal'],
     bn: ['উইথড্রয়াল', 'টাকা তোলা', 'উইথড্র'],
   },
@@ -144,7 +144,7 @@ const routesObj: Record<string, VoiceRoute> = {
     path: '/dashboard/reports',
     label: 'Reports',
     labelBn: 'রিপোর্টসমূহ',
-    keywords: ['reports', 'report', 'campaign reports', 'reported campaigns', 'platform reports', 'রিপোর্ট', 'ক্যাম্পেইন রিপোর্ট', 'অভিযোগ', 'রিপোর্টস'],
+    keywords: ['reports', 'report', 'campaign reports', 'reported campaigns', 'platform reports', 'riport', 'রিপোর্ট', 'ক্যাম্পেইন রিপোর্ট', 'অভিযোগ', 'রিপোর্টস'],
     en: ['reports', 'report', 'campaign reports', 'reported campaigns', 'platform reports'],
     bn: ['রিপোর্ট', 'ক্যাম্পেইন রিপোর্ট', 'অভিযোগ', 'রিপোর্টস'],
   },
@@ -196,28 +196,28 @@ export const SCROLL_ACTIONS: ScrollAction[] = [
     direction: 'down',
     label: 'Scrolling down',
     labelBn: 'নিচে স্ক্রল করা হচ্ছে',
-    keywords: ['scroll down', 'down', 'scroll', 'scrol', 'page down', 'নিচে স্ক্রল', 'স্ক্রল ডাউন', 'নিচে যাও', 'niche jao', 'aro niche'],
+    keywords: ['scroll down', 'down', 'scroll', 'scrol', 'scrool', 'sroll', 'srol', 'scroll it', 'scrol it', 'sroll it', 'page down', 'নিচে স্ক্রল', 'স্ক্রল ডাউন', 'নিচে যাও', 'niche jao', 'aro niche', 'niche', 'nich', 'downwards', 'scroll down please', 'niche namo', 'niche giye'],
   },
   {
     type: 'scroll',
     direction: 'up',
     label: 'Scrolling up',
     labelBn: 'উপরে স্ক্রল করা হচ্ছে',
-    keywords: ['scroll up', 'up', 'page up', 'উপরে স্ক্রল', 'স্ক্রল আপ', 'উপরে যাও', 'upore jao', 'aro upore'],
+    keywords: ['scroll up', 'up', 'scroll up please', 'page up', 'উপরে স্ক্রল', 'স্ক্রল আপ', 'উপরে যাও', 'upore jao', 'aro upore', 'upore', 'upor', 'upur', 'upwards', 'ekto upore'],
   },
   {
     type: 'scroll',
     direction: 'top',
     label: 'Scrolling to top',
     labelBn: 'পৃষ্ঠার উপরে যাচ্ছি',
-    keywords: ['scroll to top', 'go to top', 'top of page', 'শুরুতে যাও', 'উপরে চলো', 'top'],
+    keywords: ['scroll to top', 'go to top', 'top of page', 'শুরুতে যাও', 'উপরে চলো', 'top', 'shobar upore', 'ekdom upore'],
   },
   {
     type: 'scroll',
     direction: 'bottom',
     label: 'Scrolling to bottom',
     labelBn: 'পৃষ্ঠার নিচে যাচ্ছি',
-    keywords: ['scroll to bottom', 'go to bottom', 'bottom of page', 'শেষে যাও', 'নিচে চলো', 'bottom'],
+    keywords: ['scroll to bottom', 'go to bottom', 'bottom of page', 'শেষে যাও', 'নিচে চলো', 'bottom', 'shobar niche', 'ekdom niche'],
   },
 ];
 
@@ -249,73 +249,76 @@ export function resolveRoutePath(target: string, campaignId?: string, query?: Re
 }
 
 export function matchRoute(text: string): VoiceAction | null {
-  const lower = (text || '').toLowerCase().trim();
-  if (!lower) return null;
+  const rawText = (text || '').toLowerCase().trim();
+  if (!rawText) return null;
 
-  let bestMatch: { action: VoiceAction; score: number } | null = null;
+  const normalizedText = rawText
+    .replace(/scrol[l]*/g, 'scroll')
+    .replace(/srol[l]*/g, 'scroll')
+    .replace(/dash[b]*ord/g, 'dashboard')
+    .replace(/manag[e]*/g, 'manage')
+    .replace(/user[s]*/g, 'users')
+    .replace(/camp[a]*ign[s]*/g, 'campaigns')
+    .replace(/report[s]*/g, 'reports');
+
+  let bestAction: VoiceAction | null = null;
+  let bestScore = 0;
+
+  const evaluateKeywords = (keywords: string[], action: VoiceAction) => {
+    for (const kw of keywords) {
+      if (!kw) continue;
+      const kwLower = kw.toLowerCase();
+      let score = 0;
+
+      if (rawText.includes(kwLower) || normalizedText.includes(kwLower)) {
+        score = kwLower.length * 2;
+      } else {
+        const kwTokens = kwLower.split(/\s+/);
+        const textTokens = normalizedText.split(/\s+/);
+        let matchedTokens = 0;
+        for (const kt of kwTokens) {
+          if (textTokens.some(tt => tt.includes(kt) || kt.includes(tt) || (tt.length > 2 && kt.length > 2 && Math.abs(tt.length - kt.length) <= 2 && (tt.startsWith(kt.slice(0, 2)) || kt.startsWith(tt.slice(0, 2)))))) {
+            matchedTokens++;
+          }
+        }
+        if (matchedTokens > 0) {
+          score = matchedTokens * 5 + kwLower.length;
+        }
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestAction = action;
+      }
+    }
+  };
 
   // Check ROUTES
   for (const [key, route] of Object.entries(ROUTES)) {
     if (typeof key !== 'string' || !isNaN(Number(key))) continue;
     if (!route || typeof route !== 'object' || !route.keywords) continue;
 
-    let routeScore = 0;
-    for (const kw of route.keywords) {
-      if (!kw) continue;
-      const kwLower = kw.toLowerCase();
-      if (lower.includes(kwLower)) {
-        const score = kwLower.length;
-        if (score > routeScore) {
-          routeScore = score;
-        }
-      }
-    }
+    const campaignMatch = typeof window !== 'undefined' ? window.location.pathname.match(/^\/campaigns\/([^/]+)$/) : null;
+    const campaignId = campaignMatch ? campaignMatch[1] : undefined;
+    const resolvedPath = resolveRoutePath(key, campaignId);
+    if (!resolvedPath) continue;
 
-    if (routeScore > 0) {
-      if (!bestMatch || routeScore > bestMatch.score) {
-        const campaignMatch = typeof window !== 'undefined' ? window.location.pathname.match(/^\/campaigns\/([^/]+)$/) : null;
-        const campaignId = campaignMatch ? campaignMatch[1] : undefined;
-        const resolvedPath = resolveRoutePath(key, campaignId);
-        if (resolvedPath) {
-          bestMatch = {
-            action: {
-              ...route,
-              type: 'navigate',
-              path: resolvedPath,
-              key,
-            },
-            score: routeScore,
-          };
-        }
-      }
-    }
+    const navAction: VoiceAction = {
+      ...route,
+      type: 'navigate',
+      path: resolvedPath,
+      key,
+    };
+
+    evaluateKeywords(route.keywords, navAction);
   }
 
   // Check SCROLL_ACTIONS
   for (const scrollAct of SCROLL_ACTIONS) {
-    let scrollScore = 0;
-    for (const kw of scrollAct.keywords) {
-      if (!kw) continue;
-      const kwLower = kw.toLowerCase();
-      if (lower.includes(kwLower)) {
-        const score = kwLower.length;
-        if (score > scrollScore) {
-          scrollScore = score;
-        }
-      }
-    }
-
-    if (scrollScore > 0) {
-      if (!bestMatch || scrollScore > bestMatch.score) {
-        bestMatch = {
-          action: scrollAct,
-          score: scrollScore,
-        };
-      }
-    }
+    evaluateKeywords(scrollAct.keywords, scrollAct);
   }
 
-  return bestMatch ? bestMatch.action : null;
+  return bestAction;
 }
 
 export function matchRouteDeterministic(transcript: string): string | null {
