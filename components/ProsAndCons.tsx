@@ -74,12 +74,18 @@ export default function ProsAndCons() {
                 className="relative w-full max-w-md aspect-square rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-gradient-to-br from-blue-600/20 to-indigo-600/20 backdrop-blur-xl p-4 flex items-center justify-center"
               >
                 <div className="absolute inset-0 bg-blue-600/10 blur-3xl pointer-events-none" />
-                <img
-                  src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=600&q=80"
-                  alt="Platform Pros and Cons"
-                  className="w-full h-full object-cover rounded-2xl shadow-xl"
-                  onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-campaign.jpg'; }}
-                />
+                 <img
+                   src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=600&q=80"
+                   alt="Platform Pros and Cons"
+                   className="w-full h-full object-cover rounded-2xl shadow-xl"
+                   loading="lazy"
+                   onError={(e) => {
+                     const target = e.target as HTMLImageElement;
+                     if (target.dataset.fallbackApplied || target.src.endsWith('/placeholder-campaign.jpg')) return;
+                     target.dataset.fallbackApplied = 'true';
+                     target.src = '/placeholder-campaign.jpg';
+                   }}
+                 />
               </motion.div>
             </Reveal>
           </div>

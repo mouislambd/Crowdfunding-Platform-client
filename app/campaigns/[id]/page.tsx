@@ -116,6 +116,13 @@ export default function CampaignDetailsPage() {
         src={campaign.campaign_image_url || '/placeholder-campaign.jpg'}
         alt={campaign.campaign_title}
         className="w-full h-80 object-cover rounded-xl mb-8"
+        loading="lazy"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          if (target.dataset.fallbackApplied || target.src.endsWith('/placeholder-campaign.jpg')) return;
+          target.dataset.fallbackApplied = 'true';
+          target.src = '/placeholder-campaign.jpg';
+        }}
       />
       <h1 className="text-4xl font-bold mb-2">{campaign.campaign_title}</h1>
       <p className="text-gray-400 mb-4">by {campaign.creator_name} | {campaign.category}</p>

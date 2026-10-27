@@ -33,7 +33,13 @@ const TopFundedCampaigns = () => {
                         src={campaign.campaign_image_url || '/placeholder-campaign.jpg'} 
                         alt={campaign.campaign_title} 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-campaign.jpg'; }}
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          if (target.dataset.fallbackApplied || target.src.endsWith('/placeholder-campaign.jpg')) return;
+                          target.dataset.fallbackApplied = 'true';
+                          target.src = '/placeholder-campaign.jpg';
+                        }}
                       />
                       <div className="absolute top-3 left-3 bg-slate-950/70 backdrop-blur-md px-3 py-1 rounded-full text-xs font-medium text-blue-400 border border-white/10">
                         {campaign.category || 'Technology'}

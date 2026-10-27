@@ -109,12 +109,18 @@ export default function EndingSoon() {
                     className="group flex flex-col h-full bg-slate-950/80 backdrop-blur-md rounded-2xl overflow-hidden border border-white/10 shadow-xl hover:shadow-2xl hover:shadow-red-500/10 hover:border-red-500/30 transition-all duration-300"
                   >
                     <div className="relative overflow-hidden h-48 bg-slate-900">
-                      <img
-                        src={campaign.campaign_image_url || '/placeholder-campaign.jpg'}
-                        alt={campaign.campaign_title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder-campaign.jpg'; }}
-                      />
+                       <img
+                         src={campaign.campaign_image_url || '/placeholder-campaign.jpg'}
+                         alt={campaign.campaign_title}
+                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                         loading="lazy"
+                         onError={(e) => {
+                           const target = e.target as HTMLImageElement;
+                           if (target.dataset.fallbackApplied || target.src.endsWith('/placeholder-campaign.jpg')) return;
+                           target.dataset.fallbackApplied = 'true';
+                           target.src = '/placeholder-campaign.jpg';
+                         }}
+                       />
                       <div className="absolute top-3 right-3 bg-red-600/90 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                         Ending Soon
                       </div>
