@@ -6,20 +6,33 @@ export async function POST(request: Request) {
     const { transcript, lang, campaignId, page } = await request.json();
     const language = lang === 'bn' ? 'bn' : 'en';
 
-    console.log('AI Assistant request received. Route keys count:', Object.keys(ROUTES).length, 'Current page:', page);
+    console.log('AI Assistant request received. Route keys count:', Object.keys(ROUTES).length, 'Current page:', page, 'Transcript:', transcript);
 
     let matchedTarget: string | null = null;
     let matchedQuery: Record<string, string> | undefined = undefined;
-    let replyText = language === 'bn' ? 'আপনি কোন পেজে যেতে চান? অনুগ্রহ করে স্পষ্ট করে বলুন।' : 'Which page would you like to open? Please specify.';
+    let scrollDirection: 'down' | 'up' | 'top' | 'bottom' | null = null;
+    let replyText = language === 'bn' ? 'আপনি কোন পেজে যেতে চান বা কি করতে চান? অনুগ্রহ করে স্পষ্ট করে বলুন।' : 'Which page would you like to visit or what would you like to do? Please specify.';
 
-    // 1. Check deterministic fallback first
+    // 1. Check deterministic client-side/deterministic fallback first
     const deterministicKey = matchRouteDeterministic(transcript);
     if (deterministicKey && ROUTES[deterministicKey]) {
       matchedTarget = deterministicKey;
+    } else {
+      // Check for scroll intent in transcript
+      const lower = (transcript || '').toLowerCase();
+      if (lower.includes('down') || lower.includes('নিচে') || lower.includes('niche') || lower.includes('aro niche')) {
+        scrollDirection = 'down';
+      } else if (lower.includes('up') || lower.includes('উপরে') || lower.includes('upore') || lower.includes('aro upore')) {
+        scrollDirection = 'up';
+      } else if (lower.includes('top') || lower.includes('শুরু') || lower.includes('ekdom upore')) {
+        scrollDirection = 'top';
+      } else if (lower.includes('bottom') || lower.includes('footer') || lower.includes('শেষ') || lower.includes('ekdom niche')) {
+        scrollDirection = 'bottom';
+      }
     }
 
     // Special category query handling for campaigns if not yet matched
-    if (!matchedTarget) {
+    if (!matchedTarget && !scrollDirection) {
       const text = (transcript || '').toLowerCase();
       if ((text.includes('tech') || text.includes('technology') || text.includes('টেক')) && (text.includes('campaign') || text.includes('ক্যাম্পেইন'))) {
         matchedTarget = 'campaigns';
@@ -27,9 +40,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. If no deterministic match, try OpenAI API with full ROUTES list and current page
+    // 2. If no deterministic match, try OpenAI API with full ROUTES list, scroll support, and universal multilingual intent handling
     const apiKey = process.env.OPENAI_API_KEY;
-    if (apiKey && !matchedTarget) {
+    if (apiKey && !matchedTarget && !scrollDirection) {
       try {
         const routesSummary = Object.entries(ROUTES)
           .map(([k, r]) => `Key: "${k}", Path: "${r.path}", EN: [${r.en.join(', ')}], BN: [${r.bn.join(', ')}]`)
@@ -47,14 +60,23 @@ export async function POST(request: Request) {
             messages: [
               {
                 role: 'system',
-                content: `You are an AI voice assistant for a crowdfunding platform. Current user page: "${page}".
+                content: `You are an expert, empathetic, multilingual AI voice assistant for a crowdfunding platform. Current user page: "${page}".
 Available routes (single source of truth):
 ${routesSummary}
 
-Return JSON with format: {"reply": string, "action": {"type":"navigate","target": "<route key>", "query": {optional record}} | null}.
-Phrases like "manage users", "show users", "go to X", "open X", "take me to X", "process", "ড্যাশবোর্ড", "ইউজার ম্যানেজমেন্ট", "withdrawals", "reports" must map to the right key immediately.
-Never ask for confirmation when the user asks to go/open/show something.
-If nothing matches, set action to null and ask which page they want to go to in the requested language (${language}).`
+You must understand ALL types of users: educated, uneducated, technical, non-technical, speaking English, Bangla, or Banglish (transliterated Bangla), with spelling mistakes, slang, shorthand, or colloquial requests (e.g. "footer dekhao", "show me footer", "taka tulbo", "credit kinbo", "amar profile", "shobar niche jao", "campaigns gulo dekhao", "dashboard e nao", etc.).
+
+Return JSON with format: 
+{
+  "reply": string, 
+  "action": {"type":"navigate", "target": "<route key>", "query": {optional record}} | {"type":"scroll", "direction": "down" | "up" | "top" | "bottom"} | null
+}.
+
+Rules:
+1. Map any navigation intent (home, campaigns, dashboard, profile, manage users, withdrawals, reports, credits, etc.) to the correct route key immediately.
+2. Map any scrolling/page movement intent (scroll down, scroll up, go to footer, go to top, নিচে যাও, উপরে যাও, নিচে স্ক্রল, footer dekhao) to scroll action type.
+3. Never ask for confirmation when the user asks to go/open/show/scroll something.
+4. If nothing matches, set action to null and reply helpfully in the requested language (${language}).`
               },
               { role: 'user', content: `Language: ${language}. Transcript: "${transcript}". Current page: "${page}".` }
             ],
@@ -71,8 +93,11 @@ If nothing matches, set action to null and ask which page they want to go to in 
               if (parsed.action && parsed.action.type === 'navigate' && parsed.action.target && ROUTES[parsed.action.target]) {
                 matchedTarget = parsed.action.target;
                 matchedQuery = parsed.action.query || undefined;
+              } else if (parsed.action && parsed.action.type === 'scroll' && parsed.action.direction) {
+                scrollDirection = parsed.action.direction;
               } else if (parsed.action === null) {
                 matchedTarget = null;
+                scrollDirection = null;
               }
             }
           }
@@ -88,10 +113,16 @@ If nothing matches, set action to null and ask which page they want to go to in 
       } else {
         replyText = `Taking you there now.`;
       }
+    } else if (scrollDirection) {
+      if (language === 'bn') {
+        replyText = `স্ক্রল করা হচ্ছে।`;
+      } else {
+        replyText = `Scrolling now.`;
+      }
     }
 
     // Validate target against ROUTES (never trust raw URLs)
-    let action: { type: 'navigate'; target: string; query?: Record<string, string> } | null = null;
+    let action: any = null;
     if (matchedTarget && ROUTES[matchedTarget]) {
       if (ROUTES[matchedTarget].path.includes(':id') && !campaignId) {
         action = null;
@@ -103,6 +134,11 @@ If nothing matches, set action to null and ask which page they want to go to in 
           ...(matchedQuery ? { query: matchedQuery } : {}),
         };
       }
+    } else if (scrollDirection) {
+      action = {
+        type: 'scroll',
+        direction: scrollDirection,
+      };
     }
 
     return NextResponse.json({

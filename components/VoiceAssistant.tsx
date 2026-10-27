@@ -171,6 +171,17 @@ export default function VoiceAssistant() {
             router.push(targetPath);
           }
         }
+      } else if (data.action && data.action.type === 'scroll') {
+        const { direction } = data.action;
+        if (direction === 'down') {
+          window.scrollBy({ top: window.innerHeight * 0.75, behavior: 'smooth' });
+        } else if (direction === 'up') {
+          window.scrollBy({ top: -window.innerHeight * 0.75, behavior: 'smooth' });
+        } else if (direction === 'top') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (direction === 'bottom') {
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
       }
     } catch (err: any) {
       setCustomError(err.message || 'Something went wrong.');
