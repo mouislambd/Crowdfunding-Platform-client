@@ -234,7 +234,7 @@ export const CLOSE_ACTIONS: CloseAction[] = [
     type: 'close',
     label: 'Closing assistant',
     labelBn: 'অ্যাসিস্ট্যান্ট বন্ধ করা হচ্ছে',
-    keywords: ['off', 'close', 'stop', 'exit', 'bondho', 'bondho koro', 'off koro', 'thamo', 'bandho', 'bandho koro', 'off kora', 'bondho kora', 'shut down', 'hide', 'বন্ধ করো', 'অফ করো', 'থামো', 'বন্ধ', 'off koro', 'bondho koro'],
+    keywords: ['off', 'close', 'stop', 'exit', 'bondho', 'bondho koro', 'off koro', 'thamo', 'bandho', 'bandho koro', 'off kora', 'bondho kora', 'shut down', 'hide', 'বন্ধ করো', 'অফ করো', 'থামো', 'বন্ধ', 'off operation', 'stop operation', 'operation off', 'off operations', 'stop operations', 'অফ অপারেশন', 'স্টপ অপারেশন', 'অপারেশন অফ'],
   },
 ];
 

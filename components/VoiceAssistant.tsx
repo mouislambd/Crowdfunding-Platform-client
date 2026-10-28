@@ -26,6 +26,7 @@ export default function VoiceAssistant() {
   const [loading, setLoading] = useState(false);
   const [muted, setMuted] = useState(false);
   const [customError, setCustomError] = useState<string | null>(null);
+  const [autoListen, setAutoListen] = useState(true);
 
   const {
     supported,
@@ -48,8 +49,30 @@ export default function VoiceAssistant() {
   const langRef = useRef(lang);
   const isOpenRef = useRef(isOpen);
   const mutedRef = useRef(muted);
+  const autoListenRef = useRef(autoListen);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const prevSpeakingRef = useRef(false);
+
+  useEffect(() => {
+    isLoadingRef.current = loading;
+    isSpeakingRef.current = speaking;
+    langRef.current = lang;
+    isOpenRef.current = isOpen;
+    mutedRef.current = muted;
+    autoListenRef.current = autoListen;
+  }, [loading, speaking, lang, isOpen, muted, autoListen]);
+
+  // Continuous conversation listening loop
+  useEffect(() => {
+    if (isOpen && autoListen && !loading && !speaking && !listening) {
+      const timer = setTimeout(() => {
+        if (isOpenRef.current && autoListenRef.current && !isLoadingRef.current && !isSpeakingRef.current && !listening) {
+          start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, autoListen, loading, speaking, listening, start]);
 
   const handleSend = async (queryText?: string) => {
     const spoken = (queryText ?? inputRef.current ?? inputText ?? '').trim();
@@ -298,13 +321,15 @@ export default function VoiceAssistant() {
   }, [isOpen, listening, stop]);
 
   const handleToggleListening = () => {
-    if (listening) {
+    if (listening || autoListen) {
+      setAutoListen(false);
       stop();
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = null;
       }
     } else {
+      setAutoListen(true);
       transcriptRef.current = '';
       setTranscript('');
       setInputText('');
@@ -316,6 +341,7 @@ export default function VoiceAssistant() {
   const handleToggleOpen = () => {
     if (isOpen) {
       setIsOpen(false);
+      setAutoListen(false);
       stop();
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
@@ -323,6 +349,7 @@ export default function VoiceAssistant() {
       }
     } else {
       setIsOpen(true);
+      setAutoListen(true);
     }
   };
 
@@ -353,7 +380,14 @@ export default function VoiceAssistant() {
         <motion.button
           whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
           whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
-          onClick={handleToggleOpen}
+          onClick={() => {
+            if (!isOpen) {
+              setIsOpen(true);
+              setAutoListen(true);
+            } else {
+              handleToggleOpen();
+            }
+          }}
           className="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-2xl shadow-blue-600/40 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
           aria-label="Open Voice Assistant"
         >
