@@ -279,30 +279,9 @@ export default function VoiceAssistant() {
     return unsubscribe;
   }, [handleSend]);
 
-  // Hands-free loop: after reply is spoken, restart listening
-  useEffect(() => {
-    if (prevSpeakingRef.current && !speaking) {
-      if (isOpenRef.current && !isLoadingRef.current) {
-        setTimeout(() => {
-          if (isOpenRef.current && !isLoadingRef.current && !isSpeakingRef.current) {
-            start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
-          }
-        }, 300);
-      }
-    }
-    prevSpeakingRef.current = speaking;
-  }, [speaking, start, handleResult]);
 
-  // Auto-restart listening if browser stops it due to silence timeout while open
-  useEffect(() => {
-    if (!isOpen) return;
-    const interval = setInterval(() => {
-      if (isOpenRef.current && !listening && !isLoadingRef.current && !isSpeakingRef.current) {
-        start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
-      }
-    }, 800);
-    return () => clearInterval(interval);
-  }, [isOpen, listening, start, handleResult]);
+
+
 
   // Cleanup on close
   useEffect(() => {
@@ -344,7 +323,6 @@ export default function VoiceAssistant() {
       }
     } else {
       setIsOpen(true);
-      start(lang === 'bn' ? 'bn-BD' : 'en-US', handleResult);
     }
   };
 
