@@ -113,36 +113,36 @@ export default function MyCampaignsPage() {
   if (loading) return <div className="text-white p-8">Loading campaigns...</div>;
 
   return (
-    <div className="p-8 text-white">
+    <div className="w-full max-w-7xl mx-auto space-y-6 text-white">
       {editingCampaign && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleUpdate} className="bg-gray-900 p-6 rounded-lg w-full max-w-md border border-gray-700">
-            <h2 className="text-xl font-bold text-white mb-4">Edit Campaign</h2>
-            <input type="text" value={formData.campaign_title} onChange={e => setFormData({...formData, campaign_title: e.target.value})} className="w-full bg-gray-950 text-white p-2 rounded mb-3 border border-gray-700" placeholder="Title" required />
-            <textarea value={formData.campaign_story} onChange={e => setFormData({...formData, campaign_story: e.target.value})} className="w-full bg-gray-950 text-white p-2 rounded mb-3 border border-gray-700" placeholder="Story" required />
-            <textarea value={formData.reward_info} onChange={e => setFormData({...formData, reward_info: e.target.value})} className="w-full bg-gray-950 text-white p-2 rounded mb-3 border border-gray-700" placeholder="Reward Info" required />
-            <div className="flex gap-2">
-              <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
-              <button type="button" onClick={() => setEditingCampaign(null)} className="bg-gray-700 text-white px-4 py-2 rounded">Cancel</button>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <form onSubmit={handleUpdate} className="bg-gray-900 p-6 rounded-3xl w-full max-w-md border border-white/10 shadow-2xl space-y-4">
+            <h2 className="text-xl font-bold text-white mb-2">Edit Campaign</h2>
+            <input type="text" value={formData.campaign_title} onChange={e => setFormData({...formData, campaign_title: e.target.value})} className="w-full bg-gray-950 text-white p-3.5 rounded-2xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Title" required />
+            <textarea value={formData.campaign_story} onChange={e => setFormData({...formData, campaign_story: e.target.value})} className="w-full bg-gray-950 text-white p-3.5 rounded-2xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 h-28" placeholder="Story" required />
+            <textarea value={formData.reward_info} onChange={e => setFormData({...formData, reward_info: e.target.value})} className="w-full bg-gray-950 text-white p-3.5 rounded-2xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500 h-24" placeholder="Reward Info" required />
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-2xl font-semibold shadow-lg transition-all">Save</button>
+              <button type="button" onClick={() => setEditingCampaign(null)} className="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2.5 rounded-2xl font-semibold transition-all">Cancel</button>
             </div>
           </form>
         </div>
       )}
 
-      <h1 className="text-2xl font-bold text-white mb-6">My Campaigns</h1>
-      {error && <div className="bg-red-900/50 text-red-200 p-3 rounded mb-4">{error}</div>}
+      <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">My Campaigns</h1>
+      {error && <div className="bg-red-950/80 border border-red-500/40 text-red-200 p-4 rounded-2xl shadow-lg">{error}</div>}
       
       {campaigns.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-gray-900 rounded-3xl border border-gray-800 p-8 shadow-xl">
           <p className="text-gray-400 mb-4">You haven't launched any campaigns yet.</p>
-          <Link href="/dashboard/add-campaign" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <Link href="/dashboard/add-campaign" className="inline-block bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg shadow-blue-600/30 transition-all">
             Launch New Campaign
           </Link>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-gray-400">
-            <thead className="text-xs uppercase bg-gray-800 text-gray-300">
+        <div className="overflow-x-auto w-full bg-gray-900 rounded-2xl border border-gray-800 shadow-xl">
+          <table className="w-full text-left text-gray-400 min-w-[750px]">
+            <thead className="text-xs uppercase bg-gray-800/80 text-gray-300">
               <tr>
                 <th className="px-6 py-3">Campaign Title</th>
                 <th className="px-6 py-3">Category</th>
@@ -153,26 +153,26 @@ export default function MyCampaignsPage() {
                 <th className="px-6 py-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-gray-900 divide-y divide-gray-800">
+            <tbody className="divide-y divide-gray-800">
               {campaigns.map(campaign => (
-                <tr key={campaign._id}>
+                <tr key={campaign._id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 font-medium text-white">{campaign.campaign_title}</td>
                   <td className="px-6 py-4">{campaign.category}</td>
                   <td className="px-6 py-4">${campaign.funding_goal}</td>
                   <td className="px-6 py-4">${campaign.amount_raised}</td>
                   <td className="px-6 py-4">{new Date(campaign.deadline).toLocaleDateString()}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      campaign.status === 'approved' ? 'bg-green-900 text-green-200' :
-                      campaign.status === 'pending' ? 'bg-yellow-900 text-yellow-200' :
-                      'bg-red-900 text-red-200'
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      campaign.status === 'approved' ? 'bg-green-950/80 border border-green-500/40 text-green-300' :
+                      campaign.status === 'pending' ? 'bg-yellow-950/80 border border-yellow-500/40 text-yellow-300' :
+                      'bg-red-950/80 border border-red-500/40 text-red-300'
                     }`}>
                       {campaign.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 flex gap-2">
-                    <button onClick={() => { setEditingCampaign(campaign); setFormData({ campaign_title: campaign.campaign_title, campaign_story: '', reward_info: '' }); }} className="text-blue-400 hover:text-blue-300"><Edit size={18}/></button>
-                    <button onClick={() => deleteCampaign(campaign.id)} className="text-red-400 hover:text-red-300"><Trash2 size={18}/></button>
+                  <td className="px-6 py-4 flex flex-wrap items-center gap-2">
+                    <button onClick={() => { setEditingCampaign(campaign); setFormData({ campaign_title: campaign.campaign_title, campaign_story: '', reward_info: '' }); }} className="text-blue-400 hover:text-blue-300 p-2 bg-blue-950/40 rounded-xl border border-blue-500/20" title="Edit"><Edit size={18}/></button>
+                    <button onClick={() => deleteCampaign(campaign.id)} className="text-red-400 hover:text-red-300 p-2 bg-red-950/40 rounded-xl border border-red-500/20" title="Delete"><Trash2 size={18}/></button>
                   </td>
                 </tr>
               ))}

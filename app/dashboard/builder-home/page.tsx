@@ -144,62 +144,62 @@ export default function BuilderHomePage() {
   const totalAmountRaised = campaigns.reduce((sum, c) => sum + (c.amount_raised || 0), 0);
 
   return (
-    <div className="p-8 text-white">
-      <h1 className="text-3xl font-bold mb-6">Builder Dashboard</h1>
+    <div className="w-full max-w-7xl mx-auto space-y-6 text-white">
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Builder Dashboard</h1>
       
       {/* Stat cards */}
       {campaignsError ? (
-        <div className="bg-gray-900 p-6 rounded-lg border border-gray-800 mb-8 text-red-500">
+        <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 text-red-400">
           {campaignsError}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-            <p className="text-gray-400">Total Campaigns</p>
-            <p className="text-3xl font-bold">{totalCampaigns}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-xl">
+            <p className="text-gray-400 text-sm">Total Campaigns</p>
+            <p className="text-2xl sm:text-3xl font-bold mt-1">{totalCampaigns}</p>
           </div>
-          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-            <p className="text-gray-400">Active Campaigns (Future Deadline)</p>
-            <p className="text-3xl font-bold text-blue-400">{activeCampaigns}</p>
+          <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-xl">
+            <p className="text-gray-400 text-sm">Active Campaigns (Future Deadline)</p>
+            <p className="text-2xl sm:text-3xl font-bold text-blue-400 mt-1">{activeCampaigns}</p>
           </div>
-          <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-            <p className="text-gray-400">Total Amount Raised</p>
-            <p className="text-3xl font-bold text-green-400">${totalAmountRaised.toLocaleString()}</p>
+          <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-xl sm:col-span-2 lg:col-span-1">
+            <p className="text-gray-400 text-sm">Total Amount Raised</p>
+            <p className="text-2xl sm:text-3xl font-bold text-green-400 mt-1">${totalAmountRaised.toLocaleString()}</p>
           </div>
         </div>
       )}
 
-      <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
+      <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 shadow-xl">
         <h2 className="text-xl font-bold mb-4">Contributions To Review</h2>
         {contributionsError ? (
-          <div className="text-red-500">{contributionsError}</div>
+          <div className="text-red-400">{contributionsError}</div>
         ) : contributions.length === 0 ? (
           <p className="text-gray-400">No contributions to review right now.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left min-w-[650px]">
               <thead>
-                <tr className="border-b border-gray-800 text-gray-400">
+                <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase">
                   <th className="p-3">Supporter Name</th>
                   <th className="p-3">Campaign Title</th>
                   <th className="p-3">Amount</th>
                   <th className="p-3">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-800">
                 {contributions.map(c => {
                   const supporter = c.supporterName || c.supporter_name || 'Supporter';
                   const title = c.campaignTitle || c.campaign_title || 'Campaign';
                   const amt = c.amount ?? c.contribution_amount ?? 0;
                   return (
-                    <tr key={c._id} className="border-b border-gray-800">
-                      <td className="p-3">{supporter}</td>
-                      <td className="p-3">{title}</td>
+                    <tr key={c._id} className="hover:bg-white/5 transition-colors">
+                      <td className="p-3 font-medium text-white">{supporter}</td>
+                      <td className="p-3 text-gray-300">{title}</td>
                       <td className="p-3">${amt.toLocaleString()}</td>
-                      <td className="p-3 space-x-2 flex items-center">
-                        <button onClick={() => setSelectedContribution(c)} className="bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded text-sm">View</button>
-                        <button onClick={() => handleAction(c._id, 'approve')} className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm">Approve</button>
-                        <button onClick={() => handleAction(c._id, 'reject')} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm">Reject</button>
+                      <td className="p-3 flex flex-wrap items-center gap-2">
+                        <button onClick={() => setSelectedContribution(c)} className="bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors">View</button>
+                        <button onClick={() => handleAction(c._id, 'approve')} className="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shadow-lg shadow-green-600/20">Approve</button>
+                        <button onClick={() => handleAction(c._id, 'reject')} className="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shadow-lg shadow-red-600/20">Reject</button>
                       </td>
                     </tr>
                   );
@@ -212,17 +212,19 @@ export default function BuilderHomePage() {
 
       {/* View Modal */}
       {selectedContribution && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-900 p-6 rounded-lg border border-gray-700 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">Contribution Details</h3>
-            <p className="mb-2 text-gray-300"><strong>Supporter:</strong> {selectedContribution.supporterName || selectedContribution.supporter_name || 'N/A'}</p>
-            <p className="mb-2 text-gray-300"><strong>Campaign:</strong> {selectedContribution.campaignTitle || selectedContribution.campaign_title || 'N/A'}</p>
-            <p className="mb-2 text-gray-300"><strong>Amount:</strong> ${selectedContribution.amount ?? selectedContribution.contribution_amount ?? 0}</p>
-            <p className="mb-4 text-gray-300"><strong>Message:</strong> {selectedContribution.message || selectedContribution.details || 'No message provided.'}</p>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => handleAction(selectedContribution._id, 'approve')} className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm">Approve</button>
-              <button onClick={() => handleAction(selectedContribution._id, 'reject')} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm">Reject</button>
-              <button onClick={() => setSelectedContribution(null)} className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm">Close</button>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-900 p-6 rounded-3xl border border-white/10 max-w-md w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold tracking-tight">Contribution Details</h3>
+            <div className="space-y-2 text-sm text-gray-300">
+              <p><strong className="text-white">Supporter:</strong> {selectedContribution.supporterName || selectedContribution.supporter_name || 'N/A'}</p>
+              <p><strong className="text-white">Campaign:</strong> {selectedContribution.campaignTitle || selectedContribution.campaign_title || 'N/A'}</p>
+              <p><strong className="text-white">Amount:</strong> ${selectedContribution.amount ?? selectedContribution.contribution_amount ?? 0}</p>
+              <p><strong className="text-white">Message:</strong> {selectedContribution.message || selectedContribution.details || 'No message provided.'}</p>
+            </div>
+            <div className="flex flex-wrap justify-end gap-2 pt-2">
+              <button onClick={() => handleAction(selectedContribution._id, 'approve')} className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-2xl text-xs font-semibold transition-colors">Approve</button>
+              <button onClick={() => handleAction(selectedContribution._id, 'reject')} className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-2xl text-xs font-semibold transition-colors">Reject</button>
+              <button onClick={() => setSelectedContribution(null)} className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-2xl text-xs font-semibold transition-colors">Close</button>
             </div>
           </div>
         </div>
