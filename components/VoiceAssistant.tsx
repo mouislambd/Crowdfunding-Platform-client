@@ -7,12 +7,18 @@ import { Mic, MicOff, Volume2, VolumeX, Send, X, Sparkles, AlertCircle } from 'l
 import { useSpeech } from '@/lib/useSpeech';
 import { API_URL } from '@/lib/api';
 import { voiceBus } from './voiceBus';
-import { ROUTES, resolveRoutePath, matchRoute } from '@/lib/voiceRoutes';
+import { ROUTES, matchRoute } from '@/lib/voiceRoutes';
+import { useSession } from '@/lib/auth-client';
+import { takePageSnapshot } from '@/lib/pageSnapshot';
+import { executeActions } from '@/lib/agentActions';
 
 export default function VoiceAssistant() {
   const pathname = usePathname();
   const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
+  const { data: session } = useSession();
+
+  const role = session?.user?.role ? session.user.role.toLowerCase().trim() : 'supporter';
 
   // Hide on login and register
   if (pathname === '/login' || pathname === '/register') {
@@ -20,28 +26,24 @@ export default function VoiceAssistant() {
   }
 
   const [isOpen, setIsOpen] = useState(false);
-  const [lang, setLang] = useState<'en' | 'bn'>('en'); // React state only, no localStorage
+  const [lang, setLang] = useState<'en' | 'bn'>('en');
   const [inputText, setInputText] = useState('');
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
   const [muted, setMuted] = useState(false);
   const [customError, setCustomError] = useState<string | null>(null);
   const [autoListen, setAutoListen] = useState(true);
+  const [listening, setListening] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState('');
 
   const {
-    supported,
-    listening,
-    transcript,
-    interimTranscript,
-    error: speechError,
     speaking,
-    start,
-    stop,
     speak,
     cancelSpeak,
     setTranscript,
   } = useSpeech();
 
+  const recognitionRef = useRef<any>(null);
   const transcriptRef = useRef('');
   const inputRef = useRef('');
   const isLoadingRef = useRef(loading);
@@ -50,8 +52,9 @@ export default function VoiceAssistant() {
   const isOpenRef = useRef(isOpen);
   const mutedRef = useRef(muted);
   const autoListenRef = useRef(autoListen);
+  const roleRef = useRef(role);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const prevSpeakingRef = useRef(false);
+  const confirmationResolverRef = useRef<((confirmed: boolean) => void) | null>(null);
 
   useEffect(() => {
     isLoadingRef.current = loading;
@@ -60,51 +63,220 @@ export default function VoiceAssistant() {
     isOpenRef.current = isOpen;
     mutedRef.current = muted;
     autoListenRef.current = autoListen;
-  }, [loading, speaking, lang, isOpen, muted, autoListen]);
+    roleRef.current = role;
+  }, [loading, speaking, lang, isOpen, muted, autoListen, role]);
+
+  const requestConfirmation = useCallback((label: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      confirmationResolverRef.current = resolve;
+      setTimeout(() => {
+        if (confirmationResolverRef.current === resolve) {
+          confirmationResolverRef.current = null;
+          resolve(false);
+        }
+      }, 8000);
+    });
+  }, []);
+
+  const startListening = useCallback((targetLang: 'en' | 'bn', onResultCb: (alternatives: string[], interim: string) => void) => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setCustomError('Speech recognition is not supported in this browser.');
+      return;
+    }
+
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch (e) {}
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 5;
+    recognition.lang = targetLang === 'bn' ? 'bn-BD' : 'en-US';
+
+    recognition.onstart = () => {
+      setListening(true);
+      setCustomError(null);
+    };
+
+    recognition.onresult = (event: any) => {
+      let interim = '';
+      let finalAlternatives: string[] = [];
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const res = event.results[i];
+        if (res.isFinal) {
+          for (let j = 0; j < res.length; j++) {
+            const alt = res[j]?.transcript?.trim();
+            if (alt && !finalAlternatives.includes(alt)) {
+              finalAlternatives.push(alt);
+            }
+          }
+        } else {
+          if (res[0]?.transcript) {
+            interim += res[0].transcript;
+          }
+        }
+      }
+
+      if (finalAlternatives.length > 0) {
+        onResultCb(finalAlternatives, interim);
+      } else if (interim) {
+        setInterimTranscript(interim);
+      }
+    };
+
+    recognition.onerror = (e: any) => {
+      setCustomError(`Speech error: ${e.error}`);
+      setListening(false);
+    };
+
+    recognition.onend = () => {
+      setListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+    } catch (err) {
+      try {
+        recognition.stop();
+        recognition.start();
+      } catch (ex) {}
+    }
+  }, []);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) {}
+    }
+    setListening(false);
+  }, []);
 
   // Continuous conversation listening loop
   useEffect(() => {
     if (isOpen && autoListen && !loading && !speaking && !listening) {
       const timer = setTimeout(() => {
         if (isOpenRef.current && autoListenRef.current && !isLoadingRef.current && !isSpeakingRef.current && !listening) {
-          start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
+          startListening(langRef.current, handleResult);
         }
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, autoListen, loading, speaking, listening, start]);
+  }, [isOpen, autoListen, loading, speaking, listening, startListening]);
 
-  const handleSend = async (queryText?: string) => {
+  const callAgentStep = async (transcripts: string[], step: number) => {
+    if (step > 3) return;
+
+    const campaignMatch = pathname.match(/^\/campaigns\/([^/]+)$/);
+    const campaignId = campaignMatch ? campaignMatch[1] : undefined;
+    const { elements, elementMap } = takePageSnapshot();
+
+    const routesSummary = Object.entries(ROUTES)
+      .map(([k, r]) => `Key: "${k}", Path: "${r.path}", EN: [${r.en?.join(', ') || ''}], BN: [${r.bn?.join(', ') || ''}]`)
+      .join('\n');
+
+    try {
+      const res = await fetch(`${API_URL}/api/ai/agent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transcripts,
+          lang: langRef.current,
+          page: pathname,
+          role: roleRef.current,
+          elements,
+          routes: routesSummary,
+          step,
+        }),
+        credentials: 'include',
+      });
+
+      if (res.status === 429 || res.status === 502 || res.status === 503 || res.status === 504 || !res.ok) {
+        let retrySecs = 5;
+        const dataJson = await res.json().catch(() => ({}));
+        if (dataJson.retryAfterSeconds) {
+          retrySecs = dataJson.retryAfterSeconds;
+        }
+        throw new Error(`AI_UNAVAILABLE (retry in ${retrySecs}s)`);
+      }
+
+      const data = await res.json();
+      const aiReply = data.reply || (langRef.current === 'bn' ? 'অনুরোধটি প্রক্রিয়া করা হয়েছে।' : 'Request processed.');
+      setReply(aiReply);
+
+      if (!mutedRef.current) {
+        speak(aiReply, langRef.current === 'bn' ? 'bn-BD' : 'en-US');
+      }
+
+      if (data.actions && Array.isArray(data.actions) && data.actions.length > 0) {
+        await executeActions(data.actions, {
+          elementMap,
+          router,
+          speak: (txt, l) => { if (!mutedRef.current) speak(txt, l); },
+          lang: langRef.current,
+          campaignId,
+          requestConfirmation,
+        });
+      }
+
+      if (data.needsMore && step < 3) {
+        await new Promise(r => setTimeout(r, 800));
+        await callAgentStep(transcripts, step + 1);
+      }
+    } catch (err: any) {
+      const isUnavailable = err.message?.includes('AI_UNAVAILABLE') || err.message?.includes('502') || err.message?.includes('503') || err.message?.includes('429');
+      const errMessage = isUnavailable 
+        ? (langRef.current === 'bn' ? 'এআই ব্যস্ত আছে, সাধারণ কমান্ড কাজ করবে' : 'AI is busy, basic commands still work')
+        : (err.message || 'Something went wrong.');
+      setCustomError(errMessage);
+      if (!mutedRef.current) {
+        speak(errMessage, langRef.current === 'bn' ? 'bn-BD' : 'en-US');
+      }
+    } finally {
+      setLoading(false);
+      if (autoListenRef.current && isOpenRef.current) {
+        setTimeout(() => {
+          if (isOpenRef.current && autoListenRef.current && !isLoadingRef.current && !isSpeakingRef.current) {
+            startListening(langRef.current, handleResult);
+          }
+        }, 600);
+      }
+    }
+  };
+
+  const handleSend = async (queryText?: string, queryAlternatives?: string[]) => {
     const spoken = (queryText ?? inputRef.current ?? inputText ?? '').trim();
-    if (!spoken) return;
+    const transcripts = queryAlternatives && queryAlternatives.length > 0 ? queryAlternatives : (spoken ? [spoken] : []);
+    if (transcripts.length === 0) return;
 
-    const action = matchRoute(spoken);
+    const primaryText = transcripts[0];
+    const lowerPrimary = primaryText.toLowerCase();
+
+    // (a) Tiny local fast path for stop / থামো / scroll up/down for instant response
+    if (lowerPrimary.includes('stop') || lowerPrimary.includes('thamo') || lowerPrimary.includes('বন্ধ') || lowerPrimary.includes('থামো')) {
+      stopListening();
+      setIsOpen(false);
+      return;
+    }
+
+    // (b) matchRoute for clear page names / scroll actions
+    const action = matchRoute(primaryText);
     if (action) {
-      console.log('voice action hit', action);
-      if (listening) {
-        stop();
-      }
-      if (silenceTimerRef.current) {
-        clearTimeout(silenceTimerRef.current);
-        silenceTimerRef.current = null;
-      }
+      stopListening();
       setLoading(false);
       setCustomError(null);
       const isBn = langRef.current === 'bn';
       const labelToUse = isBn ? action.labelBn : action.label;
 
       if (action.type === 'navigate') {
-        const replyMsg = `Opening ${labelToUse}`;
+        const replyMsg = isBn ? `খুলে দেওয়া হচ্ছে: ${labelToUse}` : `Opening ${labelToUse}`;
         setReply(replyMsg);
         setInputText('');
         inputRef.current = '';
-        transcriptRef.current = '';
-        setTranscript('');
-
-        if (!mutedRef.current) {
-          speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
-        }
-
+        if (!mutedRef.current) speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
         router.push(action.path);
         return;
       } else if (action.type === 'scroll') {
@@ -112,12 +284,7 @@ export default function VoiceAssistant() {
         setReply(replyMsg);
         setInputText('');
         inputRef.current = '';
-        transcriptRef.current = '';
-        setTranscript('');
-
-        if (!mutedRef.current) {
-          speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
-        }
+        if (!mutedRef.current) speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
 
         if (action.direction === 'down') {
           window.scrollBy({ top: window.innerHeight * 0.75, behavior: 'smooth' });
@@ -134,113 +301,24 @@ export default function VoiceAssistant() {
         setReply(replyMsg);
         setInputText('');
         inputRef.current = '';
-        transcriptRef.current = '';
-        setTranscript('');
-
-        if (!mutedRef.current) {
-          speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
-        }
-
-        stop();
-        if (silenceTimerRef.current) {
-          clearTimeout(silenceTimerRef.current);
-          silenceTimerRef.current = null;
-        }
+        if (!mutedRef.current) speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
+        stopListening();
         setIsOpen(false);
         return;
       }
     }
 
-    if (listening) {
-      stop();
-    }
-
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-
-    // Extract campaignId if on /campaigns/<id>
-    const campaignMatch = pathname.match(/^\/campaigns\/([^/]+)$/);
-    const campaignId = campaignMatch ? campaignMatch[1] : undefined;
-
+    stopListening();
     setLoading(true);
     setCustomError(null);
     setReply('');
-    transcriptRef.current = '';
-    setTranscript('');
     setInputText('');
     inputRef.current = '';
 
-    try {
-      const res = await fetch(`/api/ai/assistant`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transcript: spoken,
-          lang: langRef.current === 'bn' ? 'bn' : 'en',
-          campaignId,
-          page: pathname,
-        }),
-        credentials: 'include',
-      });
-
-      if (res.status === 429) {
-        throw new Error('Rate limit reached. Please wait a moment before trying again.');
-      }
-      if (res.status === 502 || res.status === 503 || res.status === 504) {
-        throw new Error('Server is temporarily busy or unavailable. Please try again shortly.');
-      }
-      if (!res.ok) {
-        throw new Error('Failed to get AI response. Please try again.');
-      }
-
-      const data = await res.json();
-      const aiReply = data.reply || data.message || 'I have processed your request.';
-      setReply(aiReply);
-
-      // Speak reply if not muted
-      if (!mutedRef.current) {
-        speak(aiReply, langRef.current === 'bn' ? 'bn-BD' : 'en-US');
-      }
-
-      // Handle server action: resolve target only through ROUTES; ignore unknown keys
-      if (data.action && data.action.type === 'navigate') {
-        const { target, query } = data.action;
-        if (target && ROUTES[target]) {
-          const targetPath = resolveRoutePath(target, campaignId, query);
-          if (targetPath) {
-            router.push(targetPath);
-          }
-        }
-      } else if (data.action && data.action.type === 'scroll') {
-        const { direction } = data.action;
-        if (direction === 'down') {
-          window.scrollBy({ top: window.innerHeight * 0.75, behavior: 'smooth' });
-        } else if (direction === 'up') {
-          window.scrollBy({ top: -window.innerHeight * 0.75, behavior: 'smooth' });
-        } else if (direction === 'top') {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else if (direction === 'bottom') {
-          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-      }
-    } catch (err: any) {
-      setCustomError(err.message || 'Something went wrong.');
-    } finally {
-      setLoading(false);
-      if (mutedRef.current && isOpenRef.current) {
-        setTimeout(() => {
-          if (isOpenRef.current && !isLoadingRef.current && !isSpeakingRef.current) {
-            start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
-          }
-        }, 500);
-      }
-    }
+    await callAgentStep(transcripts, 0);
   };
 
-  const sendNow = useCallback((text: string) => {
-    console.log('VoiceAssistant sendNow:', text);
+  const sendNow = useCallback((text: string, alts?: string[]) => {
     if (!text) return;
     const trimmed = text.trim();
     if (trimmed.length < 2) return;
@@ -251,21 +329,30 @@ export default function VoiceAssistant() {
       silenceTimerRef.current = null;
     }
 
-    stop();
-
+    stopListening();
     transcriptRef.current = '';
     setTranscript('');
     setInputText('');
     inputRef.current = '';
 
-    handleSend(trimmed);
-  }, [stop, handleSend]);
+    handleSend(trimmed, alts);
+  }, [stopListening, handleSend, setTranscript]);
 
-  const handleResult = useCallback((final: string, interim: string) => {
-    console.log('VoiceAssistant onresult:', { final, interim });
+  const handleResult = useCallback((alternatives: string[], interim: string) => {
+    const primary = alternatives[0] || '';
+    if (confirmationResolverRef.current) {
+      const lowerAlts = alternatives.map(a => a.toLowerCase());
+      if (lowerAlts.some(a => a.includes('confirm') || a.includes('yes') || a.includes('হ্যাঁ'))) {
+        const resolve = confirmationResolverRef.current;
+        confirmationResolverRef.current = null;
+        resolve(true);
+        return;
+      }
+    }
+
     let currentFinal = transcriptRef.current;
-    if (final) {
-      currentFinal = currentFinal ? `${currentFinal} ${final}` : final;
+    if (primary) {
+      currentFinal = currentFinal ? `${currentFinal} ${primary}` : primary;
       transcriptRef.current = currentFinal;
       setTranscript(currentFinal);
     }
@@ -274,18 +361,18 @@ export default function VoiceAssistant() {
     setInputText(displayText);
     inputRef.current = displayText;
 
-    if (final) {
+    if (primary) {
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = null;
       }
-      sendNow(currentFinal);
+      sendNow(currentFinal, alternatives);
     } else if (interim) {
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
       }
       silenceTimerRef.current = setTimeout(() => {
-        sendNow(transcriptRef.current);
+        sendNow(transcriptRef.current, [transcriptRef.current]);
       }, 600);
     }
   }, [sendNow, setTranscript]);
@@ -297,14 +384,10 @@ export default function VoiceAssistant() {
       isOpenRef.current = true;
       setInputText(question);
       inputRef.current = question;
-      handleSend(question);
+      handleSend(question, [question]);
     });
     return unsubscribe;
   }, [handleSend]);
-
-
-
-
 
   // Cleanup on close
   useEffect(() => {
@@ -314,16 +397,16 @@ export default function VoiceAssistant() {
         silenceTimerRef.current = null;
       }
       if (listening) {
-        stop();
+        stopListening();
       }
     }
     isOpenRef.current = isOpen;
-  }, [isOpen, listening, stop]);
+  }, [isOpen, listening, stopListening]);
 
   const handleToggleListening = () => {
     if (listening || autoListen) {
       setAutoListen(false);
-      stop();
+      stopListening();
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = null;
@@ -334,7 +417,7 @@ export default function VoiceAssistant() {
       setTranscript('');
       setInputText('');
       inputRef.current = '';
-      start(lang === 'bn' ? 'bn-BD' : 'en-US', handleResult);
+      startListening(lang, handleResult);
     }
   };
 
@@ -342,7 +425,7 @@ export default function VoiceAssistant() {
     if (isOpen) {
       setIsOpen(false);
       setAutoListen(false);
-      stop();
+      stopListening();
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = null;
@@ -362,7 +445,7 @@ export default function VoiceAssistant() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, handleToggleOpen]);
 
   const exampleChips = [
     { label: 'Show technology campaigns', q: 'Show technology campaigns' },
@@ -372,7 +455,7 @@ export default function VoiceAssistant() {
 
   return (
     <>
-      {/* Floating Mic Button (bottom-right, above back-to-top, 56px, soft gradient, pulsing ring while listening) */}
+      {/* Floating Mic Button */}
       <div className="fixed bottom-24 right-6 z-50">
         {listening && (
           <span className="absolute inset-0 rounded-full bg-blue-500 opacity-75 animate-ping pointer-events-none" />
@@ -395,10 +478,11 @@ export default function VoiceAssistant() {
         </motion.button>
       </div>
 
-      {/* Glass Panel Modal */}
+      {/* Glass Panel Modal marked with data-voice-ignore */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            data-voice-ignore="true"
             initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
             animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
             exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
@@ -411,18 +495,17 @@ export default function VoiceAssistant() {
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-blue-400" />
-                <h3 className="font-bold text-lg">AI Voice Assistant</h3>
+                <h3 className="font-bold text-lg">AI Voice Agent</h3>
               </div>
               <div className="flex items-center gap-2">
-                {/* Language Toggle */}
                 <button
                   onClick={() => {
                     const nextLang = lang === 'en' ? 'bn' : 'en';
                     setLang(nextLang);
                     langRef.current = nextLang;
                     if (listening) {
-                      stop();
-                      start(nextLang === 'bn' ? 'bn-BD' : 'en-US', handleResult);
+                      stopListening();
+                      startListening(nextLang, handleResult);
                     }
                   }}
                   className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold transition-colors border border-white/10"
@@ -465,12 +548,12 @@ export default function VoiceAssistant() {
               </p>
             </div>
 
-            {/* Assistant Reply (with aria-live) */}
-            {(reply || loading || customError || speechError) && (
+            {/* Assistant Reply */}
+            {(reply || loading || customError) && (
               <div className="bg-slate-950/80 p-3.5 rounded-xl border border-blue-500/30 flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-blue-400 flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5" /> Assistant Response
+                    <Sparkles className="w-3.5 h-3.5" /> Agent Response
                   </span>
                   <div className="flex items-center gap-1.5">
                     <button
@@ -496,9 +579,9 @@ export default function VoiceAssistant() {
                       <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                       <span>Thinking...</span>
                     </div>
-                  ) : customError || speechError ? (
+                  ) : customError ? (
                     <span className="text-red-400 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4 shrink-0" /> {customError || speechError}
+                      <AlertCircle className="w-4 h-4 shrink-0" /> {customError}
                     </span>
                   ) : (
                     reply
@@ -515,7 +598,7 @@ export default function VoiceAssistant() {
                   onClick={() => {
                     setInputText(chip.q);
                     inputRef.current = chip.q;
-                    handleSend(chip.q);
+                    handleSend(chip.q, [chip.q]);
                   }}
                   className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/15 text-xs text-gray-300 hover:text-white border border-white/10 transition-colors"
                 >
@@ -555,9 +638,9 @@ export default function VoiceAssistant() {
               </button>
             </div>
 
-            {/* Privacy Note */}
+            {/* Privacy Note (Exact requested text) */}
             <p className="text-[10px] text-gray-400 text-center leading-tight pt-1 border-t border-white/5">
-              Voice is converted to text by your browser. Only the text is sent to our AI. No audio is stored.
+              Voice is converted to text by your browser. Only the text and visible button names are sent to our AI. No audio is stored.
             </p>
           </motion.div>
         )}
