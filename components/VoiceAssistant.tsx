@@ -244,7 +244,7 @@ export default function VoiceAssistant() {
       }
       silenceTimerRef.current = setTimeout(() => {
         sendNow(transcriptRef.current);
-      }, 1200);
+      }, 600);
     }
   }, [sendNow, setTranscript]);
 
@@ -268,11 +268,22 @@ export default function VoiceAssistant() {
           if (isOpenRef.current && !isLoadingRef.current && !isSpeakingRef.current) {
             start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
           }
-        }, 500);
+        }, 300);
       }
     }
     prevSpeakingRef.current = speaking;
   }, [speaking, start, handleResult]);
+
+  // Auto-restart listening if browser stops it due to silence timeout while open
+  useEffect(() => {
+    if (!isOpen) return;
+    const interval = setInterval(() => {
+      if (isOpenRef.current && !listening && !isLoadingRef.current && !isSpeakingRef.current) {
+        start(langRef.current === 'bn' ? 'bn-BD' : 'en-US', handleResult);
+      }
+    }, 800);
+    return () => clearInterval(interval);
+  }, [isOpen, listening, start, handleResult]);
 
   // Cleanup on close
   useEffect(() => {
