@@ -15,9 +15,17 @@ export interface ScrollAction {
   keywords: string[];
 }
 
+export interface CloseAction {
+  type: 'close';
+  label: string;
+  labelBn: string;
+  keywords: string[];
+}
+
 export type VoiceAction = 
   | (VoiceRoute & { type: 'navigate'; key: string })
-  | ScrollAction;
+  | ScrollAction
+  | CloseAction;
 
 const routesObj: Record<string, VoiceRoute> = {
   home: {
@@ -221,6 +229,15 @@ export const SCROLL_ACTIONS: ScrollAction[] = [
   },
 ];
 
+export const CLOSE_ACTIONS: CloseAction[] = [
+  {
+    type: 'close',
+    label: 'Closing assistant',
+    labelBn: 'অ্যাসিস্ট্যান্ট বন্ধ করা হচ্ছে',
+    keywords: ['off', 'close', 'stop', 'exit', 'bondho', 'bondho koro', 'off koro', 'thamo', 'bandho', 'bandho koro', 'off kora', 'bondho kora', 'shut down', 'hide', 'বন্ধ করো', 'অফ করো', 'থামো', 'বন্ধ', 'off koro', 'bondho koro'],
+  },
+];
+
 const routeArray = Object.values(routesObj);
 export const ROUTES: Array<VoiceRoute> & Record<string, VoiceRoute> = Object.assign(routeArray, routesObj) as any;
 
@@ -325,6 +342,11 @@ export function matchRoute(text: string): VoiceAction | null {
   // Check SCROLL_ACTIONS
   for (const scrollAct of SCROLL_ACTIONS) {
     evaluateKeywords(scrollAct.keywords, scrollAct);
+  }
+
+  // Check CLOSE_ACTIONS
+  for (const closeAct of CLOSE_ACTIONS) {
+    evaluateKeywords(closeAct.keywords, closeAct);
   }
 
   return bestAction;

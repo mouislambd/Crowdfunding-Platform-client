@@ -106,6 +106,25 @@ export default function VoiceAssistant() {
           window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
         return;
+      } else if (action.type === 'close') {
+        const replyMsg = labelToUse;
+        setReply(replyMsg);
+        setInputText('');
+        inputRef.current = '';
+        transcriptRef.current = '';
+        setTranscript('');
+
+        if (!mutedRef.current) {
+          speak(replyMsg, isBn ? 'bn-BD' : 'en-US');
+        }
+
+        stop();
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+        setIsOpen(false);
+        return;
       }
     }
 
@@ -315,11 +334,25 @@ export default function VoiceAssistant() {
     }
   };
 
+  const handleToggleOpen = () => {
+    if (isOpen) {
+      setIsOpen(false);
+      stop();
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+    } else {
+      setIsOpen(true);
+      start(lang === 'bn' ? 'bn-BD' : 'en-US', handleResult);
+    }
+  };
+
   // Keyboard Escape to close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        setIsOpen(false);
+        handleToggleOpen();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -342,7 +375,7 @@ export default function VoiceAssistant() {
         <motion.button
           whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
           whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleToggleOpen}
           className="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-2xl shadow-blue-600/40 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400"
           aria-label="Open Voice Assistant"
         >
@@ -385,7 +418,7 @@ export default function VoiceAssistant() {
                   {lang === 'en' ? 'বাংলা' : 'English'}
                 </button>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleToggleOpen}
                   className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition-colors"
                   aria-label="Close Assistant"
                 >
