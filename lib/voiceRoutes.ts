@@ -270,45 +270,75 @@ export function matchRoute(text: string): VoiceAction | null {
   if (!rawText) return null;
 
   const normalizedText = rawText
+    .replace(/[^\w\s\u0980-\u09FF]/g, ' ')
     .replace(/scrol[l]*/g, 'scroll')
     .replace(/srol[l]*/g, 'scroll')
     .replace(/collat?ge/g, 'scroll')
     .replace(/colle?ge/g, 'scroll')
     .replace(/kole/g, 'scroll')
+    .replace(/dash[a-z]*o?ard/g, 'dashboard')
     .replace(/dash[b]*ord/g, 'dashboard')
     .replace(/manag[e]*/g, 'manage')
     .replace(/user[s]*/g, 'users')
     .replace(/camp[a]*ign[s]*/g, 'campaigns')
-    .replace(/report[s]*/g, 'reports');
+    .replace(/report[s]*/g, 'reports')
+    .replace(/withdr[a-z]*wl?/g, 'withdrawal');
+
+  const userTokens = normalizedText.split(/\s+/).filter(Boolean);
 
   // Strip common conversational filler words to extract core intent
   const fillerWords = new Set(['go', 'to', 'the', 'a', 'an', 'please', 'take', 'me', 'open', 'show', 'navigate', 'page', 'site', 'view', 'see', 'kindly', 'can', 'you', 'i', 'want', 'to', 'let', 's', 'karo', 'jaw', 'jao', 'dekhao', 'khulo', 'amake', 'niye', 'cholo', 'ay', 'ai', 'ektu', 'dike']);
-  const tokens = normalizedText.split(/\s+/);
-  const coreIntentTokens = tokens.filter(t => !fillerWords.has(t));
+  const coreIntentTokens = userTokens.filter(t => !fillerWords.has(t));
   const coreIntentText = coreIntentTokens.join(' ');
 
   let bestAction: VoiceAction | null = null;
   let bestScore = 0;
 
+  function levenshteinDistance(a: string, b: string): number {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+    for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
+    for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+    for (let j = 1; j <= b.length; j++) {
+      for (let i = 1; i <= a.length; i++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        matrix[j][i] = Math.min(
+          matrix[j - 1][i] + 1,
+          matrix[j][i - 1] + 1,
+          matrix[j - 1][i - 1] + cost
+        );
+      }
+    }
+    return matrix[b.length][a.length];
+  }
+
   const evaluateKeywords = (keywords: string[], action: VoiceAction) => {
     for (const kw of keywords) {
       if (!kw) continue;
       const kwLower = kw.toLowerCase();
+      const kwTokens = kwLower.split(/\s+/).filter(Boolean);
       let score = 0;
 
       if (rawText.includes(kwLower) || normalizedText.includes(kwLower) || coreIntentText.includes(kwLower)) {
-        score = kwLower.length * 3;
+        score = kwLower.length * 4 + 10;
       } else {
-        const kwTokens = kwLower.split(/\s+/);
-        const textTokens = coreIntentTokens.length > 0 ? coreIntentTokens : normalizedText.split(/\s+/);
         let matchedTokens = 0;
         for (const kt of kwTokens) {
-          if (textTokens.some(tt => tt.includes(kt) || kt.includes(tt) || (tt.length > 2 && kt.length > 2 && Math.abs(tt.length - kt.length) <= 2 && (tt.startsWith(kt.slice(0, 2)) || kt.startsWith(tt.slice(0, 2)))))) {
-            matchedTokens++;
+          for (const ut of userTokens) {
+            if (ut === kt || ut.includes(kt) || kt.includes(ut)) {
+              matchedTokens += 1.5;
+              break;
+            } else if (ut.length >= 3 && kt.length >= 3) {
+              if (ut.startsWith(kt.slice(0, 3)) || kt.startsWith(ut.slice(0, 3)) || levenshteinDistance(ut, kt) <= 2) {
+                matchedTokens += 1;
+                break;
+              }
+            }
           }
         }
         if (matchedTokens > 0) {
-          score = matchedTokens * 5 + kwLower.length;
+          score = (matchedTokens / kwTokens.length) * (kwLower.length * 3) + matchedTokens * 4;
         }
       }
 
@@ -349,7 +379,7 @@ export function matchRoute(text: string): VoiceAction | null {
     evaluateKeywords(closeAct.keywords, closeAct);
   }
 
-  return bestAction;
+  return bestScore >= 4 ? bestAction : null;
 }
 
 export function matchRouteDeterministic(transcript: string): string | null {
