@@ -196,28 +196,28 @@ export const SCROLL_ACTIONS: ScrollAction[] = [
     direction: 'down',
     label: 'Scrolling down',
     labelBn: 'নিচে স্ক্রল করা হচ্ছে',
-    keywords: ['scroll down', 'down', 'scroll', 'scrol', 'scrool', 'sroll', 'srol', 'scroll it', 'scrol it', 'sroll it', 'page down', 'নিচে স্ক্রল', 'স্ক্রল ডাউন', 'নিচে যাও', 'niche jao', 'aro niche', 'niche', 'nich', 'downwards', 'scroll down please', 'niche namo', 'niche giye'],
+    keywords: ['scroll down', 'down', 'scroll', 'scrol', 'scrool', 'sroll', 'srol', 'scroll it', 'scrol it', 'sroll it', 'scrool it', 'srool it', 'collage', 'college', 'colle', 'kole', 'page down', 'নিচে স্ক্রল', 'স্ক্রল ডাউন', 'নিচে যাও', 'niche jao', 'aro niche', 'niche', 'nich', 'downwards', 'scroll down please', 'niche namo', 'niche giye', 'aro niche jaw'],
   },
   {
     type: 'scroll',
     direction: 'up',
     label: 'Scrolling up',
     labelBn: 'উপরে স্ক্রল করা হচ্ছে',
-    keywords: ['scroll up', 'up', 'scroll up please', 'page up', 'উপরে স্ক্রল', 'স্ক্রল আপ', 'উপরে যাও', 'upore jao', 'aro upore', 'upore', 'upor', 'upur', 'upwards', 'ekto upore'],
+    keywords: ['scroll up', 'up', 'scroll up please', 'page up', 'উপরে স্ক্রল', 'স্ক্রল আপ', 'উপরে যাও', 'upore jao', 'aro upore', 'upore', 'upor', 'upur', 'upwards', 'ekto upore', 'upore namo'],
   },
   {
     type: 'scroll',
     direction: 'top',
     label: 'Scrolling to top',
     labelBn: 'পৃষ্ঠার উপরে যাচ্ছি',
-    keywords: ['scroll to top', 'go to top', 'top of page', 'শুরুতে যাও', 'উপরে চলো', 'top', 'shobar upore', 'ekdom upore'],
+    keywords: ['scroll to top', 'go to top', 'top of page', 'শুরুতে যাও', 'উপরে চলো', 'top', 'shobar upore', 'ekdom upore', 'prothome jao'],
   },
   {
     type: 'scroll',
     direction: 'bottom',
     label: 'Scrolling to bottom',
     labelBn: 'পৃষ্ঠার নিচে যাচ্ছি',
-    keywords: ['scroll to bottom', 'go to bottom', 'bottom of page', 'শেষে যাও', 'নিচে চলো', 'bottom', 'shobar niche', 'ekdom niche'],
+    keywords: ['scroll to bottom', 'go to bottom', 'bottom of page', 'শেষে যাও', 'নিচে চলো', 'bottom', 'shobar niche', 'ekdom niche', 'shese jao', 'footer'],
   },
 ];
 
@@ -255,6 +255,9 @@ export function matchRoute(text: string): VoiceAction | null {
   const normalizedText = rawText
     .replace(/scrol[l]*/g, 'scroll')
     .replace(/srol[l]*/g, 'scroll')
+    .replace(/collat?ge/g, 'scroll')
+    .replace(/colle?ge/g, 'scroll')
+    .replace(/kole/g, 'scroll')
     .replace(/dash[b]*ord/g, 'dashboard')
     .replace(/manag[e]*/g, 'manage')
     .replace(/user[s]*/g, 'users')

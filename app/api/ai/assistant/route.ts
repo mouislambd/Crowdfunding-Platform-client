@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ROUTES, matchRouteDeterministic } from '@/lib/voiceRoutes';
+import { ROUTES, matchRoute } from '@/lib/voiceRoutes';
 
 export async function POST(request: Request) {
   try {
@@ -13,14 +13,18 @@ export async function POST(request: Request) {
     let scrollDirection: 'down' | 'up' | 'top' | 'bottom' | null = null;
     let replyText = language === 'bn' ? 'আপনি কোন পেজে যেতে চান বা কি করতে চান? অনুগ্রহ করে স্পষ্ট করে বলুন।' : 'Which page would you like to visit or what would you like to do? Please specify.';
 
-    // 1. Check deterministic client-side/deterministic fallback first
-    const deterministicKey = matchRouteDeterministic(transcript);
-    if (deterministicKey && ROUTES[deterministicKey]) {
-      matchedTarget = deterministicKey;
+    // 1. Check voiceRoutes match first (including phonetic scroll matching like "collage", "college", "scroll it", etc.)
+    const matchedAction = matchRoute(transcript);
+    if (matchedAction) {
+      if (matchedAction.type === 'navigate') {
+        matchedTarget = matchedAction.key;
+      } else if (matchedAction.type === 'scroll') {
+        scrollDirection = matchedAction.direction;
+      }
     } else {
-      // Check for scroll intent in transcript
+      // Additional fallback check for scroll intent in transcript
       const lower = (transcript || '').toLowerCase();
-      if (lower.includes('down') || lower.includes('নিচে') || lower.includes('niche') || lower.includes('aro niche')) {
+      if (lower.includes('down') || lower.includes('নিচে') || lower.includes('niche') || lower.includes('aro niche') || lower.includes('collage') || lower.includes('college') || lower.includes('colle')) {
         scrollDirection = 'down';
       } else if (lower.includes('up') || lower.includes('উপরে') || lower.includes('upore') || lower.includes('aro upore')) {
         scrollDirection = 'up';
@@ -37,6 +41,16 @@ export async function POST(request: Request) {
       if ((text.includes('tech') || text.includes('technology') || text.includes('টেক')) && (text.includes('campaign') || text.includes('ক্যাম্পেইন'))) {
         matchedTarget = 'campaigns';
         matchedQuery = { category: 'Technology' };
+      } else if (text.includes('hello') || text.includes('hi') || text.includes('salam') || text.includes('assalamualaikum') || text.includes('kemon acho') || text.includes('kemon')) {
+        replyText = language === 'bn' 
+          ? 'আসসালামু আলাইকুম! আমি আপনার ক্রাউডফ্লাউন্ডিং সহকারী। আপনি ক্যাম্পেইন দেখতে, ড্যাশবোর্ডে যেতে বা স্ক্রল করতে বলতে পারেন।'
+          : 'Hello! I am your crowdfunding assistant. You can ask me to view campaigns, go to your dashboard, or scroll down/up.';
+      } else if (text.includes('how') || text.includes('ki vabe') || text.includes('kibabe') || text.includes('kaj kore') || text.includes('works')) {
+        replyText = language === 'bn'
+          ? 'আমাদের প্ল্যাটফর্মে আপনি প্রজেক্ট তৈরি করতে পারেন, অনুদান দিতে পারেন এবং ড্যাশবোর্ড থেকে সবকিছু পরিচালনা করতে পারেন।'
+          : 'On our platform, you can create campaigns, support projects with contributions, and manage everything from your dashboard.';
+      } else if (text.includes('credit') || text.includes('taka') || text.includes('buy')) {
+        matchedTarget = 'purchase_credit';
       }
     }
 
