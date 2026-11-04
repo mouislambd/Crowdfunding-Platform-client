@@ -142,7 +142,11 @@ export async function executeActions(actions: AgentAction[], ctx: ActionContext)
           el.dispatchEvent(enterEvent);
           const form = el.closest('form');
           if (form) {
-            form.requestSubmit ? form.requestSubmit() : form.submit();
+            if (form.requestSubmit) {
+              form.requestSubmit();
+            } else {
+              form.submit();
+            }
           }
         }
         break;

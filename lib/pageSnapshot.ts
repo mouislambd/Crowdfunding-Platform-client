@@ -33,7 +33,7 @@ export function takePageSnapshot(): PageSnapshotResult {
       continue;
     }
 
-    if (el.hasAttribute('disabled') || (el as any).disabled === true || el.getAttribute('aria-disabled') === 'true') {
+    if (el.hasAttribute('disabled') || (el as HTMLInputElement).disabled === true || el.getAttribute('aria-disabled') === 'true') {
       continue;
     }
 

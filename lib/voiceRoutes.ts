@@ -239,7 +239,7 @@ export const CLOSE_ACTIONS: CloseAction[] = [
 ];
 
 const routeArray = Object.values(routesObj);
-export const ROUTES: Array<VoiceRoute> & Record<string, VoiceRoute> = Object.assign(routeArray, routesObj) as any;
+export const ROUTES: Array<VoiceRoute> & Record<string, VoiceRoute> = Object.assign(routeArray, routesObj) as unknown as Array<VoiceRoute> & Record<string, VoiceRoute>;
 
 export function resolveRoutePath(target: string, campaignId?: string, query?: Record<string, string>): string | null {
   const route = ROUTES[target];

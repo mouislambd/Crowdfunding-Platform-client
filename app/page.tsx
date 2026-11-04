@@ -11,6 +11,15 @@ const skeleton = (name: string) => (
   </div>
 );
 
+const LiveActivityTicker = dynamic(() => import('../components/LiveActivityTicker'), {
+  ssr: false,
+  loading: () => skeleton('Live Activity'),
+});
+
+const MeetDeveloper = dynamic(() => import('../components/MeetDeveloper'), {
+  ssr: false,
+  loading: () => skeleton('Meet Developer'),
+});
 
 const ExploreByCategory = dynamic(() => import('../components/ExploreByCategory'), {
   ssr: false,
@@ -82,12 +91,12 @@ const CallToAction = dynamic(() => import('../components/CallToAction'), {
   loading: () => skeleton('Call to Action'),
 });
 
-
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
       <ScrollProgress />
       <Hero />
+      <LiveActivityTicker />
       <TopFundedCampaigns />
       <ExploreByCategory />
       <HowItWorks />
@@ -101,6 +110,7 @@ export default function Home() {
       <PaymentMethods />
       <FAQ />
       <ProsAndCons />
+      <MeetDeveloper />
       <Newsletter />
       <CallToAction />
     </main>

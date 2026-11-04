@@ -88,20 +88,15 @@ const mockCampaigns: Campaign[] = [
 ];
 
 let cachedCampaigns: Campaign[] | null = null;
-let cachedError: string | null = null;
 let isLoading = false;
 const listeners = new Set<() => void>();
 
 export function useApprovedCampaigns() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(cachedCampaigns || mockCampaigns);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const updateState = () => {
       setCampaigns(cachedCampaigns || mockCampaigns);
-      setLoading(false);
-      setError(null);
     };
 
     listeners.add(updateState);
@@ -115,14 +110,11 @@ export function useApprovedCampaigns() {
         })
         .then(data => {
           cachedCampaigns = (data && data.length > 0) ? data : mockCampaigns;
-          cachedError = null;
           isLoading = false;
           listeners.forEach(l => l());
         })
         .catch(() => {
-          // Fallback to mock campaigns so landing page is always fully functional and populated
           cachedCampaigns = mockCampaigns;
-          cachedError = null;
           isLoading = false;
           listeners.forEach(l => l());
         });

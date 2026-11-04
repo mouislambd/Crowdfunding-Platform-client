@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -12,9 +10,7 @@ const Hero = () => {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.playbackRate = 0.5;
-      videoRef.current.play().catch((err) => {
-        console.log("Autoplay prevented:", err);
-      });
+      videoRef.current.play().catch(() => {});
     }
   }, []);
 

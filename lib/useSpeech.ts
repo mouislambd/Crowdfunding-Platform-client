@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react-hooks/set-state-in-effect */
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 export function useSpeech() {

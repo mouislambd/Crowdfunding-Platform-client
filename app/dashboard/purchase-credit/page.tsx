@@ -1,8 +1,6 @@
 'use client';
 
-'use client';
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from '@/lib/auth-client';
@@ -20,9 +18,18 @@ export default function PurchaseCreditPage() {
   const { data: session, isPending, refetch } = useSession();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<{ credits: number; price: number } | null>(null);
 
   const role = normalizeRole(session?.user?.role);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      setSuccess('Payment successful! Credits have been added to your account.');
+      if (typeof refetch === 'function') {
+        refetch();
+      }
+    }
+  }, [refetch]);
 
   if (isPending) {
     return (
@@ -48,38 +55,35 @@ export default function PurchaseCreditPage() {
     );
   }
 
-  const handlePurchase = async () => {
-    if (!selectedPackage) return;
+  const handleStripeCheckout = async (pkg: { credits: number; price: number }) => {
     setLoading(true);
     setSuccess(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/payments`, {
+      const response = await fetch(`${API_URL}/api/payments/create-checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          amount: selectedPackage.price,
-          credits: selectedPackage.credits,
-          payment_type: 'credit_purchase',
-          transaction_id: `DUMMY-${Date.now()}`,
+          amount: pkg.price,
+          credits: pkg.credits,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const realErrorMessage = errorData.message || errorData.error || `Payment failed with status ${response.status}`;
-        throw new Error(realErrorMessage);
+        throw new Error(errorData.message || 'Failed to initialize Stripe checkout');
       }
 
-      setSuccess(`${selectedPackage.credits} credits added to your account!`);
-      setSelectedPackage(null);
-      if (typeof refetch === 'function') {
-        await refetch();
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned from payment service');
       }
     } catch (err: any) {
-      console.error('Payment process error:', err);
-      alert(err.message || 'Payment failed. Please try again.');
+      console.error('Checkout error:', err);
+      alert(err.message || 'Payment initialization failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -89,7 +93,6 @@ export default function PurchaseCreditPage() {
     <div className="p-2 sm:p-6 text-slate-100">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Purchase Credit</h1>
-        <p className="text-xs text-slate-400 mt-1">Note: This is a demo payment system</p>
       </div>
 
       <AnimatePresence>
@@ -122,55 +125,21 @@ export default function PurchaseCreditPage() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => setSelectedPackage(pkg)}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl font-semibold shadow-lg shadow-blue-600/30 transition-all"
+              onClick={() => handleStripeCheckout(pkg)}
+              disabled={loading}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl font-semibold shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
             >
-              Buy Now
+              {loading && (
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
+              {loading ? 'Processing...' : 'Buy with Stripe'}
             </motion.button>
           </motion.div>
         ))}
       </div>
-
-      <AnimatePresence>
-        {selectedPackage && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.3 }}
-              className="bg-gray-900 border border-white/10 p-8 rounded-3xl max-w-sm w-full shadow-2xl backdrop-blur-xl"
-            >
-              <h3 className="text-xl font-bold mb-4 tracking-tight">Confirm Purchase</h3>
-              <p className="mb-8 text-slate-300">
-                Confirm purchase of <span className="text-white font-semibold">{selectedPackage.credits} credits</span> for <span className="text-blue-400 font-semibold">${selectedPackage.price}</span>?
-              </p>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setSelectedPackage(null)}
-                  className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-2xl transition-colors font-medium"
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handlePurchase}
-                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl font-semibold shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
-                  disabled={loading}
-                >
-                  {loading && (
-                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  )}
-                  {loading ? 'Processing...' : 'Confirm'}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

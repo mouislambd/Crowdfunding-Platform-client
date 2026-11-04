@@ -6,8 +6,6 @@ export async function POST(request: Request) {
     const { transcript, lang, campaignId, page } = await request.json();
     const language = lang === 'bn' ? 'bn' : 'en';
 
-    console.log('AI Assistant request received. Route keys count:', Object.keys(ROUTES).length, 'Current page:', page, 'Transcript:', transcript);
-
     let matchedTarget: string | null = null;
     let matchedQuery: Record<string, string> | undefined = undefined;
     let scrollDirection: 'down' | 'up' | 'top' | 'bottom' | null = null;
