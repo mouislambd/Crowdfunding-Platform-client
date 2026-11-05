@@ -11,11 +11,6 @@ const skeleton = (name: string) => (
   </div>
 );
 
-const LiveActivityTicker = dynamic(() => import('../components/LiveActivityTicker'), {
-  ssr: false,
-  loading: () => skeleton('Live Activity'),
-});
-
 const MeetDeveloper = dynamic(() => import('../components/MeetDeveloper'), {
   ssr: false,
   loading: () => skeleton('Meet Developer'),
@@ -96,7 +91,6 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
       <ScrollProgress />
       <Hero />
-      <LiveActivityTicker />
       <TopFundedCampaigns />
       <ExploreByCategory />
       <HowItWorks />
